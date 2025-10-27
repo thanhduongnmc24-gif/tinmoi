@@ -1,7 +1,7 @@
 // --- Các thư viện cần thiết ---
 import express from 'express'; // Framework để tạo server
 import fetch from 'node-fetch'; // Giống 'fetch' của trình duyệt, nhưng cho server
-import cors from 'cors';      // Cho phép frontend gọi backend
+import cors from 'cors';     // Cho phép frontend gọi backend
 
 // ----- CÀI ĐẶT CACHE -----
 const cache = new Map(); // Dùng Map để lưu cache
@@ -57,7 +57,7 @@ app.get('/get-rss', async (req, res) => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const xmlText = await response.text();
-        
+       
         // ---- LƯU VÀO CACHE ----
         cache.set(rssUrl, {
             data: xmlText,
@@ -83,7 +83,8 @@ app.post('/summarize', async (req, res) => {
     if (!prompt) return res.status(400).send('Thiếu prompt');
     if (!API_KEY) return res.status(500).send('API Key chưa được cấu hình trên server');
 
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+    // Model này dùng để tóm tắt nội dung được cung cấp
+    const API_URL = `https://generativelace.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
     
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
@@ -101,7 +102,7 @@ app.post('/summarize', async (req, res) => {
 
         if (!geminiResponse.ok) throw new Error('Lỗi từ Gemini');
         const result = await geminiResponse.json();
-        
+       
         if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
             const summaryText = result.candidates[0].content.parts[0].text;
             res.json({ summary: summaryText });
@@ -115,7 +116,7 @@ app.post('/summarize', async (req, res) => {
 });
 
 /**
- * Endpoint 3: Chat AI chung
+ * Endpoint 3: Chat AI chung (ĐÃ CẬP NHẬT VỚI GOOGLE SEARCH)
  */
 app.post('/chat', async (req, res) => {
     const { prompt } = req.body;
@@ -128,8 +129,14 @@ app.post('/chat', async (req, res) => {
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
         systemInstruction: {
-            parts: [{ text: "Bạn là một trợ lý AI hữu ích và thân thiện. Hãy trả lời các câu hỏi của người dùng bằng tiếng Việt một cách rõ ràng và chi tiết." }]
+            parts: [{ text: "Bạn là một trợ lý AI hữu ích và thân thiện. Hãy trả lời các câu hỏi của người dùng bằng tiếng Việt một cách rõ ràng và chi tiết. Hãy chủ động sử dụng công cụ tìm kiếm để trả lời các câu hỏi về thông tin mới, thời sự hoặc các sự kiện sau tháng 5 năm 2024." }]
         },
+        // --- ĐÂY LÀ THAY ĐỔI QUAN TRỌNG ---
+        // Bật công cụ Google Search để AI có thể lấy thông tin mới nhất
+        tools: [
+            { "google_search": {} }
+        ]
+        // ------------------------------------
     };
 
     try {
@@ -146,12 +153,16 @@ app.post('/chat', async (req, res) => {
         }
 
         const result = await geminiResponse.json();
-        
+       
         if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
             const answerText = result.candidates[0].content.parts[0].text;
             // Trả về với key là 'answer'
             res.json({ answer: answerText });
         } else {
+            // Đôi khi, AI sẽ gọi tool và chưa trả lời, nhưng trong trường hợp này,
+            // API (không phải streaming) thường sẽ trả về câu trả lời cuối cùng sau khi gọi tool.
+            // Nếu không có text, đó là lỗi.
+            console.warn("Kết quả trả về không có phần text:", result);
             throw new Error("Không nhận được nội dung hợp lệ từ API Gemini.");
         }
     } catch (error) {
