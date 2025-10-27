@@ -90,7 +90,7 @@
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-white">Tin Tức Tổng Hợp</h1>
 
-                {/* --- Desktop Nav (Ẩn trên mobile) --- */}
+               
                 <div id="feed-nav" class="hidden sm:flex space-x-2 overflow-x-auto py-1">
                     <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
@@ -101,7 +101,7 @@
                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
                 </div>
 
-                {/* --- Mobile Menu Button (Hiện trên mobile) --- */}
+               
                 <div class="sm:hidden">
                     <button id="hamburger-button" class="text-gray-300 hover:text-white focus:outline-none focus:text-white p-2">
                          <span class="sr-only">Mở menu</span>
@@ -112,7 +112,6 @@
                 </div>
             </div>
 
-             {/* --- Mobile Menu (Dropdown/Sidebar) --- */}
             <div id="mobile-menu" class="hidden sm:hidden bg-gray-700 absolute top-full left-0 right-0 z-20 shadow-lg mt-1 rounded-b-md">
                 <div class="px-2 pt-2 pb-3 space-y-1">
                     <button class="feed-button active" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
