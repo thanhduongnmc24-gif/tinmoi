@@ -2,9 +2,8 @@
 <html lang="vi" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tin Tức Tổng Hợp</title>
-    <!-- Tải Tailwind CSS để làm giao diện -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Thêm font Inter cho đẹp */
@@ -39,20 +38,16 @@
             background-color: #374151; /* hover:bg-gray-700 */
         }
     </style>
-    <!-- Tải font Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-gray-900 text-gray-100 antialiased">
 
-    <!-- Header và các tab điều hướng -->
     <header class="bg-gray-800 shadow-md sticky top-0 z-10">
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-white hidden sm:block">Tin Tức Tổng Hợp</h1>
-            <!-- Container cho các nút, cho phép cuộn ngang trên di động -->
             <div id="feed-nav" class="flex space-x-2 overflow-x-auto whitespace-nowrap py-1">
-                <!-- Thêm data-rss và data-source cho mỗi nút -->
                 <button class="feed-button active px-4 py-2 rounded-lg" 
                         data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" 
                         data-source="VnExpress">
@@ -92,58 +87,43 @@
         </nav>
     </header>
 
-    <!-- Khu vực hiển thị tin tức -->
     <main class="container mx-auto p-4 md:p-8">
-        <!-- Spinner loading khi đang tải tin -->
         <div id="loading-spinner" class="flex justify-center items-center h-64">
             <div class="spinner border-t-blue-500" style="width: 50px; height: 50px;"></div>
         </div>
         
-        <!-- Lưới hiển thị các thẻ tin tức -->
         <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Các thẻ tin tức sẽ được chèn vào đây bằng JavaScript -->
-        </div>
+            </div>
     </main>
 
-    <!-- ĐÃ XÓA NÚT TÓM TẮT AI TOÀN CỤC -->
-
-    <!-- Modal (cửa sổ pop-up) hiển thị nội dung tóm tắt -->
     <div id="summary-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
         <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-white">Bản Tóm Tắt AI</h2>
                 <button id="close-modal-button" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
-            <!-- Nội dung tóm tắt hoặc loading spinner -->
             <div id="summary-content" class="min-h-[200px] flex items-center justify-center">
-                <!-- Nội dung tóm tắt sẽ được chèn vào đây -->
-            </div>
+                </div>
         </div>
     </div>
 
     <script type="module">
         // ----- CÀI ĐẶT -----
-        // !!! THAY THẾ 'YOUR_API_KEY' BẰNG API KEY CỦA BẠN TỪ GOOGLE AI STUDIO !!!
-        const API_KEY = "YOUR_API_KEY"; 
-        
-        // Proxy để tránh lỗi CORS
-        const CORS_PROXY_URL = "https://corsproxy.io/?"; 
+        // KHÔNG CẦN API KEY Ở ĐÂY NỮA
+        // KHÔNG CẦN PROXY NỮA
 
-        // ----- BIẾN TOÀN CỤC -----
+        // ----- BIẾN TOÀN CỤC (Không thay đổi) -----
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
-        // Đã xóa aiButton
         const modal = document.getElementById('summary-modal');
         const closeModalButton = document.getElementById('close-modal-button');
         const summaryContent = document.getElementById('summary-content');
         const feedNav = document.getElementById('feed-nav');
-
-        // Đã xóa selectedArticle
  
-        // ----- HÀM GỌI API GEMINI -----
+        // ----- HÀM GỌI API (ĐÃ THAY ĐỔI) -----
 
         /**
-         * Gọi API Gemini để tạo nội dung.
+         * Gọi API Gemini (thông qua server của chúng ta)
          * @param {string} prompt - Câu lệnh yêu cầu AI.
          * @returns {Promise<string>} - Văn bản do AI tạo ra.
          */
@@ -152,84 +132,54 @@
             summaryContent.innerHTML = `<div class="spinner border-t-blue-500"></div>`;
             modal.classList.remove('hidden');
 
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-            
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: {
-                    parts: [{ text: "Bạn là một trợ lý tóm tắt tin tức. Hãy tóm tắt nội dung được cung cấp một cách súc tích, chính xác trong khoảng 100-150 từ, sử dụng ngôn ngữ tiếng Việt." }]
-                },
-            };
+            // THAY ĐỔI: Gọi đến endpoint '/summarize' trên server của chúng ta
+            try {
+                const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }) // Gửi prompt trong body
+                });
 
-            let retries = 3;
-            let delay = 1000; // 1 giây
-
-            while (retries > 0) {
-                try {
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorBody = await response.json();
-                        console.error("API Error Body:", errorBody);
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
-                        return result.candidates[0].content.parts[0].text;
-                    } else {
-                        console.error("API Response không hợp lệ:", result);
-                        // Kiểm tra xem có bị chặn vì an toàn không
-                        if (result.candidates && result.candidates[0]?.finishReason === 'SAFETY') {
-                             throw new Error("Nội dung bị chặn vì lý do an toàn.");
-                        }
-                        throw new Error("Không nhận được nội dung hợp lệ từ API.");
-                    }
-
-                } catch (error) {
-                    console.error("Lỗi khi gọi Gemini API:", error);
-                    retries--;
-                    if (retries === 0) {
-                        return `Rất tiếc, đã xảy ra lỗi khi tạo bản tóm tắt: ${error.message}. Vui lòng thử lại sau.`;
-                    }
-                    // Chờ trước khi thử lại (exponential backoff)
-                    await new Promise(res => setTimeout(res, delay));
-                    delay *= 2; // Gấp đôi thời gian chờ
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Lỗi server: ${errorText}`);
                 }
+
+                const result = await response.json();
+                return result.summary; // Server trả về { summary: "..." }
+
+            } catch (error) {
+                console.error("Lỗi khi gọi API tóm tắt:", error);
+                return `Rất tiếc, đã xảy ra lỗi khi tạo bản tóm tắt: ${error.message}.`;
             }
         }
 
-        // ----- HÀM XỬ LÝ RSS -----
+        // ----- HÀM XỬ LÝ RSS (ĐÃ THAY ĐỔI) -----
 
         /**
-         * Lấy và phân tích dữ liệu RSS feed.
+         * Lấy và phân tích dữ liệu RSS feed (thông qua server của chúng ta)
          * @param {string} rssUrl - URL của RSS feed.
          * @param {string} sourceName - Tên nguồn tin (VnExpress, Tuổi Trẻ...)
          */
         async function fetchRSS(rssUrl, sourceName) {
-            // Hiển thị spinner, xóa tin cũ
             loadingSpinner.classList.remove('hidden');
             newsGrid.innerHTML = '';
-            // Đã xóa aiButton.classList.add('hidden');
 
             try {
-                const response = await fetch(`${CORS_PROXY_URL}${rssUrl}`);
+                // THAY ĐỔI: Gọi đến endpoint '/get-rss' trên server
+                const response = await fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(`Lỗi server: ${errorText}`);
                 }
+                
+                // Server trả về XML, chúng ta phân tích như cũ
                 const str = await response.text();
                 
-                // Dùng DOMParser để phân tích XML
                 const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(str, "application/xml");
+                const xmlDoc = parser.parseFromString(str, "text/xml");
                 
-                // Kiểm tra lỗi phân tích XML
                 const parserError = xmlDoc.getElementsByTagName("parsererror");
                 if (parserError.length) {
                     console.error("Lỗi phân tích XML:", parserError[0].textContent);
@@ -238,22 +188,27 @@
 
                 const items = xmlDoc.querySelectorAll("item");
                 if (items.length === 0) {
-                    throw new Error("Nguồn tin này không có bài viết nào hoặc cấu trúc RSS không đúng.");
+                    const entries = xmlDoc.querySelectorAll("entry");
+                    if (entries.length > 0) {
+                         displayArticles(Array.from(entries), sourceName);
+                    } else {
+                        throw new Error("Nguồn tin này không có bài viết nào hoặc cấu trúc RSS không đúng.");
+                    }
+                } else {
+                     displayArticles(Array.from(items), sourceName);
                 }
-                displayArticles(Array.from(items), sourceName);
 
             } catch (error) {
                 console.error(`Không thể tải RSS feed từ ${sourceName}:`, error);
                 newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
             } finally {
-                // Ẩn spinner loading
                 loadingSpinner.classList.add('hidden');
             }
         }
 
         /**
-         * Hiển thị các bài báo lên lưới.
-         * @param {Element[]} items - Một mảng các phần tử <item> từ RSS.
+         * Hiển thị các bài báo lên lưới. (KHÔNG THAY ĐỔI)
+         * @param {Element[]} items - Một mảng các phần tử <item> hoặc <entry> từ RSS.
          * @param {string} sourceName - Tên nguồn tin.
          */
         function displayArticles(items, sourceName) {
@@ -261,31 +216,32 @@
 
             items.forEach(item => {
                 const title = item.querySelector("title")?.textContent || "Không có tiêu đề";
-                let description = item.querySelector("description")?.textContent || "";
-                const link = item.querySelector("link")?.textContent || "#";
-                const pubDate = item.querySelector("pubDate")?.textContent || "";
+                let description = item.querySelector("description")?.textContent || item.querySelector("summary")?.textContent || item.querySelector("content")?.textContent || "";
                 
-                // Trích xuất ảnh và mô tả
+                let link = item.querySelector("link")?.textContent || "#";
+                if (link === "#" && item.querySelector("link")?.hasAttribute("href")) {
+                    link = item.querySelector("link")?.getAttribute("href") || "#";
+                }
+
+                const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("updated")?.textContent || "";
+                
                 const descParser = new DOMParser();
                 const descDoc = descParser.parseFromString(`<!doctype html><body>${description}`, 'text/html');
                 
                 const img = descDoc.querySelector("img");
                 const imgSrc = img ? img.src : "https://placehold.co/600x400/374151/9CA3AF?text=Tin+Tuc";
                 
-                // Lấy văn bản mô tả (loại bỏ HTML)
                 let descriptionText = descDoc.body.textContent.trim() || "Không có mô tả.";
 
-                // Một số RSS (như 24h) có tiêu đề trong mô tả, ta thử loại bỏ
                 if (descriptionText.startsWith(title)) {
                     descriptionText = descriptionText.substring(title.length).trim();
                 }
 
-                // THAY ĐỔI: Thẻ `div` được đổi thành thẻ `<a>` (link)
                 const card = document.createElement('a');
                 card.href = link;
-                card.target = "_blank"; // Mở tab mới
+                card.target = "_blank"; 
                 card.rel = "noopener noreferrer";
-                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20 block"; // Dùng 'block' để thẻ <a> hoạt động như 1 khối
+                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20 block"; 
 
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="${title}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/374151/9CA3AF?text=Error';">
@@ -293,11 +249,9 @@
                         <span class="text-xs font-semibold text-blue-400">${sourceName}</span>
                         <h3 class="text-lg font-bold text-white mt-2 mb-3 leading-tight h-20 overflow-hidden">${title}</h3>
                         
-                        <!-- THAY ĐỔI: Thêm flex container để chứa ngày và nút -->
                         <div class="flex justify-between items-center mt-4">
                             <p class="text-sm text-gray-400">${pubDate ? new Date(pubDate).toLocaleString('vi-VN') : ''}</p>
                             
-                            <!-- THAY ĐỔI: Nút tóm tắt riêng cho mỗi thẻ -->
                             <button class="summary-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
                                 Tóm tắt
                             </button>
@@ -305,19 +259,13 @@
                     </div>
                 `;
                 
-                // Lấy nút tóm tắt vừa tạo
                 const summaryButton = card.querySelector('.summary-btn');
 
-                // Thêm sự kiện click cho nút tóm tắt
                 summaryButton.addEventListener('click', (e) => {
-                    // Ngăn không cho thẻ <a> (card) điều hướng khi bấm nút
                     e.preventDefault(); 
                     e.stopPropagation(); 
-
-                    // Gọi hàm tóm tắt với dữ liệu của thẻ này
                     handleSummaryClick(title, descriptionText);
                 });
-
 
                 newsGrid.appendChild(card);
             });
@@ -327,59 +275,46 @@
 
         /**
          * Xử lý khi nhấn vào một nút nguồn tin (VnExpress, Tuổi Trẻ...)
+         * (KHÔNG THAY ĐỔI)
          * @param {Event} e - Sự kiện click.
          */
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
-            if (!clickedButton) return; // Không phải là nút feed
+            if (!clickedButton) return; 
 
-            // Bỏ active tất cả các nút
             feedNav.querySelectorAll('.feed-button').forEach(btn => {
                 btn.classList.remove('active');
             });
 
-            // Active nút được click
             clickedButton.classList.add('active');
 
-            // Lấy thông tin từ data attributes
             const rssUrl = clickedButton.dataset.rss;
             const sourceName = clickedButton.dataset.source;
 
-            // Tải RSS feed mới
             fetchRSS(rssUrl, sourceName);
         }
 
-        // Đã xóa hàm handleArticleClick(cardElement)
-
         /**
-         * Xử lý khi nhấn nút Tóm Tắt AI.
+         * Xử lý khi nhấn nút Tóm Tắt AI. (Cập nhật)
          * @param {string} title - Tiêu đề của bài viết
          * @param {string} description - Mô tả của bài viết
          */
         async function handleSummaryClick(title, description) {
             if (!description || description === "Không có mô tả.") {
-                // Sử dụng modal thay vì alert()
                 summaryContent.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt bài viết này.</p>`;
                 modal.classList.remove('hidden');
                 return;
             }
+            
+            // KHÔNG CẦN KIỂM TRA API KEY Ở ĐÂY NỮA
 
-            if (API_KEY === "YOUR_API_KEY") {
-                summaryContent.innerHTML = `<p class="text-red-400 text-center">Vui lòng cấu hình API Key trong file index.html để sử dụng tính năng này.</p>`;
-                modal.classList.remove('hidden');
-                return;
-            }
-
-            // Tạo câu lệnh (prompt) cho AI
             const prompt = `Tóm tắt nội dung sau đây trong khoảng 100 đến 150 từ:
             
             Tiêu đề: ${title}
             Nội dung: ${description}`;
 
-            // Gọi API và hiển thị kết quả
             const summaryText = await callGeminiAPI(prompt);
             
-            // Hiển thị kết quả tóm tắt (đã được định dạng)
             summaryContent.innerHTML = `
                 <div class="text-gray-200 space-y-4">
                     <h3 class="text-lg font-semibold text-white">${title}</h3>
@@ -388,37 +323,28 @@
             `;
         }
 
-        // ----- GẮN KẾT CÁC SỰ KIỆN -----
+        // ----- GẮN KẾT CÁC SỰ KIỆN (Không thay đổi) -----
 
-        // Sự kiện khi trang được tải xong
         document.addEventListener('DOMContentLoaded', () => {
-            // Gắn sự kiện click cho toàn bộ thanh nav (event delegation)
             feedNav.addEventListener('click', handleFeedButtonClick);
-
-            // Tải feed đầu tiên (VnExpress) khi mới vào trang
             const defaultFeed = feedNav.querySelector('.feed-button.active');
             if (defaultFeed) {
                 fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
             }
         });
 
-        // Đã xóa sự kiện click cho aiButton
-
-        // Sự kiện đóng modal
         closeModalButton.addEventListener('click', () => {
             modal.classList.add('hidden');
-            summaryContent.innerHTML = ''; // Xóa nội dung
+            summaryContent.innerHTML = ''; 
         });
 
-        // Đóng modal khi nhấn ra ngoài
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.add('hidden');
-                summaryContent.innerHTML = ''; // Xóa nội dung
+                summaryContent.innerHTML = ''; 
             }
         });
 
     </script>
 </body>
 </html>
-
