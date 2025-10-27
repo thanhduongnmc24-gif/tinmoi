@@ -23,7 +23,6 @@ const API_KEY = process.env.GEMINI_API_KEY;
 
 /**
  * Endpoint 1: Lấy RSS feed (ĐÃ CÓ CACHE)
- * Frontend sẽ gọi: /get-rss?url=https://...
  */
 app.get('/get-rss', async (req, res) => {
     const rssUrl = req.query.url;
@@ -77,19 +76,12 @@ app.get('/get-rss', async (req, res) => {
 });
 
 /**
- * Endpoint 2: Tóm tắt AI (Không cần cache vì mỗi prompt là duy nhất)
- * Frontend sẽ gọi: /summarize (với method POST)
+ * Endpoint 2: Tóm tắt AI
  */
 app.post('/summarize', async (req, res) => {
     const { prompt } = req.body;
-
-    if (!prompt) {
-        return res.status(400).send('Thiếu prompt');
-    }
-    
-    if (!API_KEY) {
-        return res.status(500).send('API Key chưa được cấu hình trên server');
-    }
+    if (!prompt) return res.status(400).send('Thiếu prompt');
+    if (!API_KEY) return res.status(500).send('API Key chưa được cấu hình trên server');
 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
     
@@ -107,27 +99,67 @@ app.post('/summarize', async (req, res) => {
             body: JSON.stringify(payload)
         });
 
+        if (!geminiResponse.ok) throw new Error('Lỗi từ Gemini');
+        const result = await geminiResponse.json();
+        
+        if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+            const summaryText = result.candidates[0].content.parts[0].text;
+            res.json({ summary: summaryText });
+        } else {
+            throw new Error("Không nhận được nội dung hợp lệ từ API Gemini.");
+        }
+    } catch (error) {
+        console.error("Lỗi khi gọi Gemini (summarize):", error);
+        res.status(500).send('Lỗi khi tóm tắt: ' + error.message);
+    }
+});
+
+/**
+ * Endpoint 3: Chat AI chung
+ */
+app.post('/chat', async (req, res) => {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).send('Thiếu prompt');
+    if (!API_KEY) return res.status(500).send('API Key chưa được cấu hình trên server');
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+    
+    // Sử dụng system prompt khác
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: {
+            parts: [{ text: "Bạn là một trợ lý AI hữu ích và thân thiện. Hãy trả lời các câu hỏi của người dùng bằng tiếng Việt một cách rõ ràng và chi tiết." }]
+        },
+    };
+
+    try {
+        const geminiResponse = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
         if (!geminiResponse.ok) {
             const errorBody = await geminiResponse.json();
-            console.error("Lỗi API Gemini:", errorBody);
+            console.error("Lỗi API Gemini (chat):", errorBody);
             throw new Error(`Lỗi từ Gemini: ${geminiResponse.status}`);
         }
 
         const result = await geminiResponse.json();
         
         if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
-            const summaryText = result.candidates[0].content.parts[0].text;
-            // Gửi tóm tắt về lại cho frontend
-            res.json({ summary: summaryText });
+            const answerText = result.candidates[0].content.parts[0].text;
+            // Trả về với key là 'answer'
+            res.json({ answer: answerText });
         } else {
             throw new Error("Không nhận được nội dung hợp lệ từ API Gemini.");
         }
-
     } catch (error) {
-        console.error("Lỗi khi gọi Gemini:", error);
-        res.status(500).send('Lỗi khi tóm tắt: ' + error.message);
+        console.error("Lỗi khi gọi Gemini (chat):", error);
+        res.status(500).send('Lỗi khi chat: ' + error.message);
     }
 });
+
 
 // --- Khởi động Server ---
 app.listen(PORT, () => {
