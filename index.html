@@ -37,6 +37,18 @@
         .feed-button:hover {
             background-color: #374151; /* hover:bg-gray-700 */
         }
+
+        /* CSS cho input trong chat modal */
+        #chat-input {
+            background-color: #374151; /* bg-gray-700 */
+            color: white;
+            border: 1px solid #4B5563; /* border-gray-600 */
+        }
+        #chat-input:focus {
+            outline: none;
+            border-color: #3B82F6; /* border-blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,41 +60,13 @@
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-white hidden sm:block">Tin Tức Tổng Hợp</h1>
             <div id="feed-nav" class="flex space-x-2 overflow-x-auto whitespace-nowrap py-1">
-                <button class="feed-button active px-4 py-2 rounded-lg" 
-                        data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" 
-                        data-source="VnExpress">
-                    VnExpress
-                </button>
-                <button class="feed-button px-4 py-2 rounded-lg" 
-                        data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss"
-                        data-source="Tuổi Trẻ">
-                    Tuổi Trẻ
-                </button>
-                <button class="feed-button px-4 py-2 rounded-lg" 
-                        data-rss="https://thanhnien.vn/rss/home.rss"
-                        data-source="Thanh Niên">
-                    Thanh Niên
-                </button>
-                <button class="feed-button px-4 py-2 rounded-lg" 
-                        data-rss="https://dantri.com.vn/rss/home.rss"
-                        data-source="Dân Trí">
-                    Dân Trí
-                </button>
-                <button class="feed-button px-4 py-2 rounded-lg" 
-                        data-rss="https://vtv.vn/rss/home.rss"
-                        data-source="VTV">
-                    VTV
-                </button>
-                <button class="feed-button px-4 py-2 rounded-lg" 
-                        data-rss="https://thethao247.vn/bong-da.rss"
-                        data-source="Thể Thao 247">
-                    Thể Thao 247
-                </button>
-                 <button class="feed-button px-4 py-2 rounded-lg" 
-                        data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss"
-                        data-source="24h.com.vn">
-                    24h
-                </button>
+                <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://vtv.vn/rss/home.rss" data-source="VTV">VTV</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thethao247.vn/bong-da.rss" data-source="Thể Thao 247">Thể Thao 247</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
             </div>
         </nav>
     </header>
@@ -91,7 +75,6 @@
         <div id="loading-spinner" class="flex justify-center items-center h-64">
             <div class="spinner border-t-blue-500" style="width: 50px; height: 50px;"></div>
         </div>
-        
         <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             </div>
     </main>
@@ -107,21 +90,82 @@
         </div>
     </div>
 
+    <button id="chat-fab" class="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center z-40 transition-transform transform hover:scale-110">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+    </button>
+
+    <div id="chat-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-white">Hỏi AI bất cứ điều gì</h2>
+                <button id="close-chat-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <div id="chat-display" class="min-h-[200px] bg-gray-900 p-4 rounded-lg mb-4 overflow-y-auto flex-grow text-gray-200 whitespace-pre-wrap leading-relaxed">
+                Xin chào! Bạn muốn hỏi gì hôm nay?
+            </div>
+            
+            <form id="chat-form" class="flex space-x-2">
+                <input type="text" id="chat-input" placeholder="Nhập câu hỏi của bạn..." class="flex-grow p-3 rounded-lg focus:outline-none">
+                <button type="submit" id="send-chat-button" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+
     <script type="module">
-        // ----- BIẾN TOÀN CỤC (Không thay đổi) -----
+        // ----- BIẾN TOÀN CỤC (Tóm tắt) -----
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
-        const modal = document.getElementById('summary-modal');
+        const summaryModal = document.getElementById('summary-modal');
         const closeModalButton = document.getElementById('close-modal-button');
         const summaryContent = document.getElementById('summary-content');
         const feedNav = document.getElementById('feed-nav');
  
-        // ----- HÀM GỌI API (Không thay đổi) -----
+        // ----- BIẾN TOÀN CỤC (Chat) -----
+        const chatFab = document.getElementById('chat-fab');
+        const chatModal = document.getElementById('chat-modal');
+        const closeChatModal = document.getElementById('close-chat-modal');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatDisplay = document.getElementById('chat-display');
+
+        // ----- [MỚI] BỘ NHỚ ĐỆM PHÍA TRÌNH DUYỆT -----
+        // Biến này sẽ lưu trữ RSS data sau khi tải.
+        // Nó sẽ bị xóa khi trang F5.
+        const clientRssCache = new Map();
+
+
+        // ----- HÀM GỌI API (Tóm tắt) (Không thay đổi) -----
         async function callGeminiAPI(prompt) {
             summaryContent.innerHTML = `<div class="spinner border-t-blue-500"></div>`;
-            modal.classList.remove('hidden');
+            summaryModal.classList.remove('hidden');
             try {
                 const response = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                if (!response.ok) throw new Error('Lỗi server (tóm tắt)');
+                const result = await response.json();
+                return result.summary;
+            } catch (error) {
+                console.error("Lỗi API tóm tắt:", error);
+                return `Rất tiếc, đã xảy ra lỗi: ${error.message}.`;
+            }
+        }
+
+        // ----- HÀM GỌI API (Chat) (Không thay đổi) -----
+        async function callChatAPI(prompt) {
+            chatDisplay.innerHTML = `<div class="flex justify-center items-center h-full"><div class="spinner border-t-blue-500"></div></div>`;
+            try {
+                const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt })
@@ -131,47 +175,77 @@
                     throw new Error(`Lỗi server: ${errorText}`);
                 }
                 const result = await response.json();
-                return result.summary;
+                return result.answer; 
             } catch (error) {
-                console.error("Lỗi khi gọi API tóm tắt:", error);
-                return `Rất tiếc, đã xảy ra lỗi khi tạo bản tóm tắt: ${error.message}.`;
+                console.error("Lỗi khi gọi API chat:", error);
+                return `Đã xảy ra lỗi khi cố gắng chat: ${error.message}.`;
             }
         }
 
-        // ----- HÀM XỬ LÝ RSS (Không thay đổi) -----
-        async function fetchRSS(rssUrl, sourceName) {
-            loadingSpinner.classList.remove('hidden');
-            newsGrid.innerHTML = '';
-            try {
-                const response = await fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`);
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Lỗi server: ${errorText}`);
+
+        // ----- HÀM XỬ LÝ RSS (ĐÃ CẬP NHẬT) -----
+        /**
+         * @param {string} rssUrl - URL của RSS feed.
+         * @param {string} sourceName - Tên nguồn tin.
+         * @param {object} [options] - Tùy chọn
+         * @param {boolean} [options.display=true] - Có hiển thị spinner và cập nhật UI không.
+         */
+        async function fetchRSS(rssUrl, sourceName, { display = true } = {}) {
+            if (display) {
+                loadingSpinner.classList.remove('hidden');
+                newsGrid.innerHTML = '';
+            }
+
+            // ---- [MỚI] KIỂM TRA CLIENT CACHE TRƯỚC ----
+            if (clientRssCache.has(rssUrl)) {
+                console.log(`[CLIENT CACHE] Lấy ${sourceName} từ cache trình duyệt.`);
+                const items = clientRssCache.get(rssUrl);
+                if (display) {
+                    displayArticles(items, sourceName);
+                    loadingSpinner.classList.add('hidden');
                 }
+                return; // Kết thúc, không cần gọi server
+            }
+
+            // ---- NẾU KHÔNG CÓ, GỌI SERVER (server cũng có cache 10 phút) ----
+            try {
+                console.log(`[FETCH] Đang gọi server cho ${sourceName}...`);
+                const response = await fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`);
+                if (!response.ok) throw new Error('Lỗi server (RSS)');
                 const str = await response.text();
+                
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(str, "text/xml");
-                const parserError = xmlDoc.getElementsByTagName("parsererror");
-                if (parserError.length) {
-                    console.error("Lỗi phân tích XML:", parserError[0].textContent);
-                    throw new Error("Không thể phân tích dữ liệu RSS.");
-                }
-                const items = xmlDoc.querySelectorAll("item");
-                if (items.length === 0) {
-                    const entries = xmlDoc.querySelectorAll("entry");
-                    if (entries.length > 0) {
-                         displayArticles(Array.from(entries), sourceName);
-                    } else {
-                        throw new Error("Nguồn tin này không có bài viết nào hoặc cấu trúc RSS không đúng.");
-                    }
+                if (xmlDoc.getElementsByTagName("parsererror").length) throw new Error("Lỗi phân tích XML");
+
+                let items;
+                const itemNodes = xmlDoc.querySelectorAll("item");
+                if (itemNodes.length === 0) {
+                    const entryNodes = xmlDoc.querySelectorAll("entry");
+                    if (entryNodes.length > 0) items = Array.from(entryNodes);
+                    else throw new Error("Không tìm thấy bài viết");
                 } else {
-                     displayArticles(Array.from(items), sourceName);
+                     items = Array.from(itemNodes);
                 }
+
+                // ---- [MỚI] LƯU VÀO CLIENT CACHE ----
+                console.log(`[CLIENT CACHE] Đã lưu ${sourceName} vào cache trình duyệt.`);
+                clientRssCache.set(rssUrl, items);
+
+                // Hiển thị nếu được yêu cầu
+                if (display) {
+                    displayArticles(items, sourceName);
+                }
+
             } catch (error) {
-                console.error(`Không thể tải RSS feed từ ${sourceName}:`, error);
-                newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
+                console.error(`Lỗi tải RSS ${sourceName}:`, error);
+                if (display) {
+                    newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
+                }
             } finally {
-                loadingSpinner.classList.add('hidden');
+                if (display) {
+                    loadingSpinner.classList.add('hidden');
+                }
             }
         }
 
@@ -222,25 +296,24 @@
             });
         }
 
-        // ----- HÀM XỬ LÝ SỰ KIỆN (Không thay đổi) -----
+        // ----- HÀM XỬ LÝ SỰ KIỆN (ĐÃ CẬP NHẬT) -----
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
-            if (!clickedButton) return; 
-            if (clickedButton.classList.contains('active')) return; // Đã active, không tải lại
+            if (!clickedButton || clickedButton.classList.contains('active')) return; 
 
-            feedNav.querySelectorAll('.feed-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
+            feedNav.querySelectorAll('.feed-button').forEach(btn => btn.classList.remove('active'));
             clickedButton.classList.add('active');
-            const rssUrl = clickedButton.dataset.rss;
-            const sourceName = clickedButton.dataset.source;
-            fetchRSS(rssUrl, sourceName);
+            
+            // [CẬP NHẬT] Gọi fetchRSS. Hàm này sẽ tự kiểm tra cache
+            // và hiển thị ngay lập tức nếu đã có.
+            fetchRSS(clickedButton.dataset.rss, clickedButton.dataset.source);
         }
 
+        // HÀM XỬ LÝ TÓM TẮT (Không thay đổi)
         async function handleSummaryClick(title, description) {
             if (!description || description === "Không có mô tả.") {
-                summaryContent.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt bài viết này.</p>`;
-                modal.classList.remove('hidden');
+                summaryContent.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt.</p>`;
+                summaryModal.classList.remove('hidden');
                 return;
             }
             const prompt = `Tóm tắt nội dung sau đây trong khoảng 100 đến 150 từ:
@@ -254,73 +327,84 @@
                 </div>
             `;
         }
+        
+        // HÀM XỬ LÝ CHAT (Không thay đổi)
+        async function handleSendChat(e) {
+            e.preventDefault(); 
+            const prompt = chatInput.value.trim();
+            if (!prompt) return; 
 
-        // ----- GẮN KẾT CÁC SỰ KIỆN (ĐÃ CẬP NHẬT) -----
+            chatInput.value = ''; 
+            
+            const answer = await callChatAPI(prompt);
+            
+            chatDisplay.innerHTML = `
+                <div class="mb-4">
+                    <strong class="text-blue-400">Câu hỏi của bạn:</strong>
+                    <p class="mt-1 text-gray-300">${prompt}</p>
+                </div>
+                <hr class="border-gray-600 my-4">
+                <div>
+                    <strong class="text-green-400">Câu trả lời từ AI:</strong>
+                    <p class="mt-1">${answer}</p>
+                </div>
+            `;
+        }
 
-        /**
-         * [MỚI] Tải các feed khác trong nền để làm nóng cache của server.
-         * Sẽ chạy sau khi feed chính (VnExpress) đã tải xong.
-         */
+        // ----- GẮN KẾT CÁC SỰ KIỆN -----
+
+        // Gắn sự kiện cho cache warmer (ĐÃ CẬP NHẬT)
         function prewarmCache() {
             console.log("[Cache-Warmer] Bắt đầu tải nền các feed khác...");
+            const feedsToPrewarm = Array.from(feedNav.querySelectorAll('.feed-button:not(.active)'));
             
-            // Lấy tất cả các nút
-            const allFeeds = Array.from(feedNav.querySelectorAll('.feed-button'));
-            
-            // Lọc ra các nút KHÔNG active (không phải VnExpress)
-            const feedsToPrewarm = allFeeds.filter(btn => !btn.classList.contains('active'));
-
             feedsToPrewarm.forEach(feed => {
                 const rssUrl = feed.dataset.rss;
                 const sourceName = feed.dataset.source;
                 
-                // "Fire and forget" - Bắn request và không cần chờ kết quả
-                // Mục đích là để server tự fetch và cache (trong 10 phút)
-                fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`)
-                    .then(res => {
-                        if (res.ok) {
-                            console.log(`[Cache-Warmer] Đã tải nền thành công: ${sourceName}`);
-                        } else {
-                            console.warn(`[Cache-Warmer] Tải nền thất bại (lỗi server): ${sourceName}`);
-                        }
-                    })
-                    .catch(err => {
-                        // Không làm gì cả, chỉ log lỗi
-                        console.error(`[Cache-Warmer] Tải nền thất bại (lỗi mạng): ${sourceName}`, err.message);
-                    });
+                // [CẬP NHẬT] Gọi fetchRSS với chế độ "không hiển thị"
+                // Hàm này sẽ gọi server và lưu vào clientRssCache.
+                fetchRSS(rssUrl, sourceName, { display: false });
             });
         }
 
-        // Sự kiện khi trang được tải xong (ĐÃ CẬP NHẬT)
+        // Tải trang (Không thay đổi)
         document.addEventListener('DOMContentLoaded', async () => {
-            // Gắn sự kiện click cho toàn bộ thanh nav (event delegation)
             feedNav.addEventListener('click', handleFeedButtonClick);
-
-            // 1. Tải feed đầu tiên (VnExpress) khi mới vào trang
             const defaultFeed = feedNav.querySelector('.feed-button.active');
             if (defaultFeed) {
-                // Dùng await để CHỜ cho feed đầu tiên tải xong
+                // Tải và hiển thị feed mặc định
                 await fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
             }
-            
-            // 2. [MỚI] Sau khi feed đầu tiên xong, bắt đầu tải ngầm các feed khác
-            // Dùng setTimeout 0 giây để tác vụ này chạy ngay sau khi
-            // trình duyệt rảnh (không block UI)
+            // Tải ngầm các feed khác
             setTimeout(prewarmCache, 0); 
         });
 
-        // Sự kiện modal (Không thay đổi)
-        closeModalButton.addEventListener('click', () => {
-            modal.classList.add('hidden');
-            summaryContent.innerHTML = ''; 
+        // Sự kiện modal Tóm tắt (Không thay đổi)
+        closeModalButton.addEventListener('click', () => summaryModal.classList.add('hidden'));
+        summaryModal.addEventListener('click', (e) => {
+            if (e.target === summaryModal) summaryModal.classList.add('hidden');
         });
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-                summaryContent.innerHTML = ''; 
+        // GẮN SỰ KIỆN CHO CHAT (Không thay đổi)
+        chatFab.addEventListener('click', () => {
+            chatModal.classList.remove('hidden');
+            chatInput.focus(); 
+        });
+        
+        closeChatModal.addEventListener('click', () => {
+            chatModal.classList.add('hidden');
+            chatDisplay.innerHTML = "Xin chào! Bạn muốn hỏi gì hôm nay?";
+        });
+
+        chatModal.addEventListener('click', (e) => {
+            if (e.target === chatModal) {
+                chatModal.classList.add('hidden');
+                chatDisplay.innerHTML = "Xin chào! Bạn muốn hỏi gì hôm nay?";
             }
         });
+        
+        chatForm.addEventListener('submit', handleSendChat);
 
     </script>
 </body>
