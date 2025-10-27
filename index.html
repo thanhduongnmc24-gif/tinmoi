@@ -49,7 +49,7 @@
             border-color: #3B82F6; /* border-blue-500 */
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
         }
-        
+
         /* CSS cho bong bóng chat */
         .chat-bubble {
             max-width: 80%;
@@ -67,6 +67,20 @@
             background-color: #4B5563; /* bg-gray-600 */
             color: #E5E7EB; /* text-gray-200 */
             align-self: flex-start; /* Căn trái */
+        }
+
+        /* [MỚI] Giới hạn dòng cho mô tả bài viết */
+        .line-clamp-3 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3; /* Giới hạn 3 dòng */
+        }
+         .line-clamp-2 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2; /* Giới hạn 2 dòng */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,11 +133,9 @@
                 <h2 class="text-2xl font-bold text-white">Hỏi AI bất cứ điều gì</h2>
                 <button id="close-chat-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
-            
             <div id="chat-display" class="min-h-[200px] bg-gray-900 p-4 rounded-lg mb-4 overflow-y-auto flex-grow flex flex-col">
                 <div class="model-bubble">Xin chào! Bạn muốn hỏi gì hôm nay?</div>
             </div>
-            
             <form id="chat-form" class="flex space-x-2">
                 <input type="text" id="chat-input" placeholder="Nhập câu hỏi của bạn..." class="flex-grow p-3 rounded-lg focus:outline-none">
                 <button type="submit" id="send-chat-button" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center justify-center">
@@ -137,15 +149,13 @@
 
 
     <script type="module">
-        // ----- BIẾN TOÀN CỤC (RSS) -----
+        // ----- BIẾN TOÀN CỤC -----
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
         const summaryModal = document.getElementById('summary-modal');
-        const closeModalButton = document.getElementById('close-summary-modal'); // Đã sửa ID
+        const closeModalButton = document.getElementById('close-summary-modal');
         const summaryContent = document.getElementById('summary-content');
         const feedNav = document.getElementById('feed-nav');
- 
-        // ----- BIẾN TOÀN CỤC (Chat) -----
         const chatFab = document.getElementById('chat-fab');
         const chatModal = document.getElementById('chat-modal');
         const closeChatModal = document.getElementById('close-chat-modal');
@@ -153,10 +163,9 @@
         const chatInput = document.getElementById('chat-input');
         const chatDisplay = document.getElementById('chat-display');
 
-        // ----- BỘ NHỚ ĐỆM (CACHE) -----
-        const clientRssCache = new Map(); // Cache RSS phía trình duyệt
-        let chatHistory = []; // Lịch sử chat
-
+        // ----- CACHE -----
+        const clientRssCache = new Map();
+        let chatHistory = [];
 
         // ----- HÀM GỌI API (Tóm tắt) -----
         async function callGeminiAPI(prompt) {
@@ -179,50 +188,42 @@
 
         // ----- HÀM GỌI API (Chat) -----
         async function callChatAPI() {
-            // Thêm bong bóng "loading"
             const loadingBubble = document.createElement('div');
             loadingBubble.className = 'model-bubble';
             loadingBubble.innerHTML = `<div class="spinner border-t-white" style="width: 20px; height: 20px;"></div>`;
             chatDisplay.appendChild(loadingBubble);
-            chatDisplay.scrollTop = chatDisplay.scrollHeight; // Cuộn xuống
-            
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+
             try {
-                // Gửi toàn bộ 'chatHistory'
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ history: chatHistory }) 
+                    body: JSON.stringify({ history: chatHistory })
                 });
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Lỗi server: ${errorText}`);
                 }
-                
+
                 const result = await response.json();
                 const answer = result.answer;
-
-                // Thêm câu trả lời của AI vào lịch sử
                 chatHistory.push({ role: "model", parts: [{ text: answer }] });
-                
-                // Xóa bong bóng loading và hiển thị câu trả lời
                 chatDisplay.removeChild(loadingBubble);
-                renderChatHistory(); // Vẽ lại toàn bộ chat
+                renderChatHistory();
 
             } catch (error) {
                 console.error("Lỗi khi gọi API chat:", error);
-                // Xóa loading và hiển thị lỗi
                 chatDisplay.removeChild(loadingBubble);
                 const errorBubble = document.createElement('div');
                 errorBubble.className = 'model-bubble';
-                errorBubble.style.backgroundColor = '#991B1B'; // bg-red-700
+                errorBubble.style.backgroundColor = '#991B1B';
                 errorBubble.textContent = `Lỗi: ${error.message}`;
                 chatDisplay.appendChild(errorBubble);
             } finally {
-                chatDisplay.scrollTop = chatDisplay.scrollHeight; // Cuộn xuống cuối
+                chatDisplay.scrollTop = chatDisplay.scrollHeight;
             }
         }
-
 
         // ----- HÀM XỬ LÝ RSS -----
         async function fetchRSS(rssUrl, sourceName, { display = true } = {}) {
@@ -284,50 +285,56 @@
                     descriptionText = descriptionText.substring(title.length).trim();
                 }
 
-                // [CẬP NHẬT] Đổi thẻ <a> thành <div>
-                const card = document.createElement('div');
-                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20"; 
-                
+                // Đổi thẻ <a> thành <div> và xóa target="_blank"
+                const card = document.createElement('a'); // Vẫn dùng thẻ <a> để giữ lại link
+                card.href = link;
+                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20 block";
+
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="${title}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/374151/9CA3AF?text=Error';">
                     <div class="p-5">
                         <span class="text-xs font-semibold text-blue-400">${sourceName}</span>
-                        <h3 class="text-lg font-bold text-white mt-2 mb-3 leading-tight h-20 overflow-hidden">${title}</h3>
+                        <h3 class="text-lg font-bold text-white mt-2 mb-1 leading-tight line-clamp-2">${title}</h3>
+
+                        <p class="text-sm text-gray-400 mt-2 mb-3 line-clamp-3">${descriptionText}</p>
+
                         <div class="flex justify-between items-center mt-4">
                             <p class="text-sm text-gray-400">${pubDate ? new Date(pubDate).toLocaleString('vi-VN') : ''}</p>
-                            
-                            <button class="read-btn bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
-                                Đọc
-                            </button>
                             <button class="summary-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
                                 Tóm tắt
                             </button>
                         </div>
                     </div>
                 `;
-                
-                // [MỚI] Gắn sự kiện cho nút "Đọc tại đây"
-                const readButton = card.querySelector('.read-btn');
-                readButton.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Ngăn sự kiện click khác
-                    handleReadClick(title, descriptionText, imgSrc, sourceName, link);
-                });
+
+                // Ngăn chuyển trang mặc định, chỉ xử lý nút tóm tắt
+                card.addEventListener('click', (e) => {
+                     // Nếu click vào nút tóm tắt thì không làm gì cả (để sự kiện của nút chạy)
+                     if (e.target.closest('.summary-btn')) {
+                         return;
+                     }
+                     // Nếu không phải nút tóm tắt thì ngăn chuyển trang mặc định
+                     // (vì ta muốn mở trong tab hiện tại)
+                     // e.preventDefault(); // Dòng này bị comment đi để link mở trong tab hiện tại
+                 });
+
 
                 // Gắn sự kiện cho nút "Tóm tắt"
                 const summaryButton = card.querySelector('.summary-btn');
                 summaryButton.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
+                    e.preventDefault(); // Ngăn thẻ <a> cha chuyển trang
+                    e.stopPropagation(); // Ngăn sự kiện nổi bọt lên thẻ <a>
                     handleSummaryClick(title, descriptionText);
                 });
                 newsGrid.appendChild(card);
             });
         }
 
+
         // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt) -----
-        
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
-            if (!clickedButton || clickedButton.classList.contains('active')) return; 
+            if (!clickedButton || clickedButton.classList.contains('active')) return;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             feedNav.querySelectorAll('.feed-button').forEach(btn => btn.classList.remove('active'));
             clickedButton.classList.add('active');
@@ -351,22 +358,10 @@
                 </div>
             `;
         }
-        
-        // ----- [MỚI] HÀM XỬ LÝ SỰ KIỆN (Đọc tin) -----
-        function handleReadClick(title, description, imgSrc, sourceName, link) {
-            readTitle.textContent = title;
-            readDescription.textContent = description;
-            readImage.src = imgSrc;
-            readSource.textContent = sourceName;
-            readOriginalLink.href = link; // Cập nhật link cho nút "Đọc bài gốc"
-            
-            readModal.classList.remove('hidden');
-        }
 
         // ----- HÀM XỬ LÝ SỰ KIỆN (Chat) -----
-        
         function renderChatHistory() {
-            chatDisplay.innerHTML = ''; 
+            chatDisplay.innerHTML = '';
             if (chatHistory.length === 0) {
                  chatDisplay.innerHTML = `<div class="model-bubble">Xin chào! Bạn muốn hỏi gì hôm nay?</div>`;
                  return;
@@ -379,7 +374,7 @@
                 } else {
                     bubble.classList.add('model-bubble');
                 }
-                bubble.style.whiteSpace = "pre-wrap"; 
+                bubble.style.whiteSpace = "pre-wrap";
                 bubble.textContent = message.parts[0].text;
                 chatDisplay.appendChild(bubble);
             });
@@ -387,24 +382,21 @@
         }
 
         async function handleSendChat(e) {
-            e.preventDefault(); 
+            e.preventDefault();
             const prompt = chatInput.value.trim();
-            if (!prompt) return; 
+            if (!prompt) return;
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            renderChatHistory(); 
-            chatInput.value = ''; 
+            renderChatHistory();
+            chatInput.value = '';
             await callChatAPI();
         }
 
         function resetChat() {
-            chatHistory = []; 
-            renderChatHistory(); 
+            chatHistory = [];
+            renderChatHistory();
         }
 
-
         // ----- GẮN KẾT CÁC SỰ KIỆN -----
-
-        // Cache warmer
         function prewarmCache() {
             console.log("[Cache-Warmer] Bắt đầu tải nền các feed khác...");
             const feedsToPrewarm = Array.from(feedNav.querySelectorAll('.feed-button:not(.active)'));
@@ -413,35 +405,25 @@
             });
         }
 
-        // Tải trang
         document.addEventListener('DOMContentLoaded', async () => {
             feedNav.addEventListener('click', handleFeedButtonClick);
             const defaultFeed = feedNav.querySelector('.feed-button.active');
             if (defaultFeed) {
                 await fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
             }
-            setTimeout(prewarmCache, 0); 
+            setTimeout(prewarmCache, 0);
         });
 
-        // Sự kiện modal Tóm tắt
         closeModalButton.addEventListener('click', () => summaryModal.classList.add('hidden'));
         summaryModal.addEventListener('click', (e) => {
             if (e.target === summaryModal) summaryModal.classList.add('hidden');
         });
 
-        // [MỚI] GẮN SỰ KIỆN CHO MODAL ĐỌC TIN
-        closeReadModal.addEventListener('click', () => readModal.classList.add('hidden'));
-        readModal.addEventListener('click', (e) => {
-            if (e.target === readModal) readModal.classList.add('hidden');
-        });
-
-
-        // GẮN SỰ KIỆN CHO CHAT 
         chatFab.addEventListener('click', () => {
             chatModal.classList.remove('hidden');
-            chatInput.focus(); 
+            chatInput.focus();
         });
-        
+
         closeChatModal.addEventListener('click', () => {
             chatModal.classList.add('hidden');
             resetChat();
@@ -453,7 +435,7 @@
                 resetChat();
             }
         });
-        
+
         chatForm.addEventListener('submit', handleSendChat);
 
     </script>
