@@ -5,7 +5,7 @@ import cors from 'cors';
 
 // ----- CÀI ĐẶT CACHE (RSS) -----
 const cache = new Map(); 
-const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 phút
+const CACHE_DURATION_MS = 2 * 60 * 1000; // 2 phút
 
 // --- Cài đặt Server ---
 const app = express();
