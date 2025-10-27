@@ -108,10 +108,6 @@
     </div>
 
     <script type="module">
-        // ----- CÀI ĐẶT -----
-        // KHÔNG CẦN API KEY Ở ĐÂY NỮA
-        // KHÔNG CẦN PROXY NỮA
-
         // ----- BIẾN TOÀN CỤC (Không thay đổi) -----
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
@@ -120,72 +116,46 @@
         const summaryContent = document.getElementById('summary-content');
         const feedNav = document.getElementById('feed-nav');
  
-        // ----- HÀM GỌI API (ĐÃ THAY ĐỔI) -----
-
-        /**
-         * Gọi API Gemini (thông qua server của chúng ta)
-         * @param {string} prompt - Câu lệnh yêu cầu AI.
-         * @returns {Promise<string>} - Văn bản do AI tạo ra.
-         */
+        // ----- HÀM GỌI API (Không thay đổi) -----
         async function callGeminiAPI(prompt) {
-            // Hiển thị loading trong modal
             summaryContent.innerHTML = `<div class="spinner border-t-blue-500"></div>`;
             modal.classList.remove('hidden');
-
-            // THAY ĐỔI: Gọi đến endpoint '/summarize' trên server của chúng ta
             try {
                 const response = await fetch('/summarize', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt }) // Gửi prompt trong body
+                    body: JSON.stringify({ prompt })
                 });
-
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Lỗi server: ${errorText}`);
                 }
-
                 const result = await response.json();
-                return result.summary; // Server trả về { summary: "..." }
-
+                return result.summary;
             } catch (error) {
                 console.error("Lỗi khi gọi API tóm tắt:", error);
                 return `Rất tiếc, đã xảy ra lỗi khi tạo bản tóm tắt: ${error.message}.`;
             }
         }
 
-        // ----- HÀM XỬ LÝ RSS (ĐÃ THAY ĐỔI) -----
-
-        /**
-         * Lấy và phân tích dữ liệu RSS feed (thông qua server của chúng ta)
-         * @param {string} rssUrl - URL của RSS feed.
-         * @param {string} sourceName - Tên nguồn tin (VnExpress, Tuổi Trẻ...)
-         */
+        // ----- HÀM XỬ LÝ RSS (Không thay đổi) -----
         async function fetchRSS(rssUrl, sourceName) {
             loadingSpinner.classList.remove('hidden');
             newsGrid.innerHTML = '';
-
             try {
-                // THAY ĐỔI: Gọi đến endpoint '/get-rss' trên server
                 const response = await fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`);
-                
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Lỗi server: ${errorText}`);
                 }
-                
-                // Server trả về XML, chúng ta phân tích như cũ
                 const str = await response.text();
-                
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(str, "text/xml");
-                
                 const parserError = xmlDoc.getElementsByTagName("parsererror");
                 if (parserError.length) {
                     console.error("Lỗi phân tích XML:", parserError[0].textContent);
                     throw new Error("Không thể phân tích dữ liệu RSS.");
                 }
-
                 const items = xmlDoc.querySelectorAll("item");
                 if (items.length === 0) {
                     const entries = xmlDoc.querySelectorAll("entry");
@@ -197,7 +167,6 @@
                 } else {
                      displayArticles(Array.from(items), sourceName);
                 }
-
             } catch (error) {
                 console.error(`Không thể tải RSS feed từ ${sourceName}:`, error);
                 newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
@@ -206,115 +175,78 @@
             }
         }
 
-        /**
-         * Hiển thị các bài báo lên lưới. (KHÔNG THAY ĐỔI)
-         * @param {Element[]} items - Một mảng các phần tử <item> hoặc <entry> từ RSS.
-         * @param {string} sourceName - Tên nguồn tin.
-         */
+        // ----- HÀM HIỂN THỊ (Không thay đổi) -----
         function displayArticles(items, sourceName) {
-            newsGrid.innerHTML = ''; // Xóa nội dung cũ
-
+            newsGrid.innerHTML = '';
             items.forEach(item => {
                 const title = item.querySelector("title")?.textContent || "Không có tiêu đề";
                 let description = item.querySelector("description")?.textContent || item.querySelector("summary")?.textContent || item.querySelector("content")?.textContent || "";
-                
                 let link = item.querySelector("link")?.textContent || "#";
                 if (link === "#" && item.querySelector("link")?.hasAttribute("href")) {
                     link = item.querySelector("link")?.getAttribute("href") || "#";
                 }
-
                 const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("updated")?.textContent || "";
-                
                 const descParser = new DOMParser();
                 const descDoc = descParser.parseFromString(`<!doctype html><body>${description}`, 'text/html');
-                
                 const img = descDoc.querySelector("img");
                 const imgSrc = img ? img.src : "https://placehold.co/600x400/374151/9CA3AF?text=Tin+Tuc";
-                
                 let descriptionText = descDoc.body.textContent.trim() || "Không có mô tả.";
-
                 if (descriptionText.startsWith(title)) {
                     descriptionText = descriptionText.substring(title.length).trim();
                 }
-
                 const card = document.createElement('a');
                 card.href = link;
                 card.target = "_blank"; 
                 card.rel = "noopener noreferrer";
                 card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20 block"; 
-
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="${title}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/374151/9CA3AF?text=Error';">
                     <div class="p-5">
                         <span class="text-xs font-semibold text-blue-400">${sourceName}</span>
                         <h3 class="text-lg font-bold text-white mt-2 mb-3 leading-tight h-20 overflow-hidden">${title}</h3>
-                        
                         <div class="flex justify-between items-center mt-4">
                             <p class="text-sm text-gray-400">${pubDate ? new Date(pubDate).toLocaleString('vi-VN') : ''}</p>
-                            
                             <button class="summary-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
                                 Tóm tắt
                             </button>
                         </div>
                     </div>
                 `;
-                
                 const summaryButton = card.querySelector('.summary-btn');
-
                 summaryButton.addEventListener('click', (e) => {
                     e.preventDefault(); 
                     e.stopPropagation(); 
                     handleSummaryClick(title, descriptionText);
                 });
-
                 newsGrid.appendChild(card);
             });
         }
 
-        // ----- HÀM XỬ LÝ SỰ KIỆN -----
-
-        /**
-         * Xử lý khi nhấn vào một nút nguồn tin (VnExpress, Tuổi Trẻ...)
-         * (KHÔNG THAY ĐỔI)
-         * @param {Event} e - Sự kiện click.
-         */
+        // ----- HÀM XỬ LÝ SỰ KIỆN (Không thay đổi) -----
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
             if (!clickedButton) return; 
+            if (clickedButton.classList.contains('active')) return; // Đã active, không tải lại
 
             feedNav.querySelectorAll('.feed-button').forEach(btn => {
                 btn.classList.remove('active');
             });
-
             clickedButton.classList.add('active');
-
             const rssUrl = clickedButton.dataset.rss;
             const sourceName = clickedButton.dataset.source;
-
             fetchRSS(rssUrl, sourceName);
         }
 
-        /**
-         * Xử lý khi nhấn nút Tóm Tắt AI. (Cập nhật)
-         * @param {string} title - Tiêu đề của bài viết
-         * @param {string} description - Mô tả của bài viết
-         */
         async function handleSummaryClick(title, description) {
             if (!description || description === "Không có mô tả.") {
                 summaryContent.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt bài viết này.</p>`;
                 modal.classList.remove('hidden');
                 return;
             }
-            
-            // KHÔNG CẦN KIỂM TRA API KEY Ở ĐÂY NỮA
-
             const prompt = `Tóm tắt nội dung sau đây trong khoảng 100 đến 150 từ:
-            
             Tiêu đề: ${title}
             Nội dung: ${description}`;
-
             const summaryText = await callGeminiAPI(prompt);
-            
             summaryContent.innerHTML = `
                 <div class="text-gray-200 space-y-4">
                     <h3 class="text-lg font-semibold text-white">${title}</h3>
@@ -323,16 +255,61 @@
             `;
         }
 
-        // ----- GẮN KẾT CÁC SỰ KIỆN (Không thay đổi) -----
+        // ----- GẮN KẾT CÁC SỰ KIỆN (ĐÃ CẬP NHẬT) -----
 
-        document.addEventListener('DOMContentLoaded', () => {
+        /**
+         * [MỚI] Tải các feed khác trong nền để làm nóng cache của server.
+         * Sẽ chạy sau khi feed chính (VnExpress) đã tải xong.
+         */
+        function prewarmCache() {
+            console.log("[Cache-Warmer] Bắt đầu tải nền các feed khác...");
+            
+            // Lấy tất cả các nút
+            const allFeeds = Array.from(feedNav.querySelectorAll('.feed-button'));
+            
+            // Lọc ra các nút KHÔNG active (không phải VnExpress)
+            const feedsToPrewarm = allFeeds.filter(btn => !btn.classList.contains('active'));
+
+            feedsToPrewarm.forEach(feed => {
+                const rssUrl = feed.dataset.rss;
+                const sourceName = feed.dataset.source;
+                
+                // "Fire and forget" - Bắn request và không cần chờ kết quả
+                // Mục đích là để server tự fetch và cache (trong 10 phút)
+                fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`)
+                    .then(res => {
+                        if (res.ok) {
+                            console.log(`[Cache-Warmer] Đã tải nền thành công: ${sourceName}`);
+                        } else {
+                            console.warn(`[Cache-Warmer] Tải nền thất bại (lỗi server): ${sourceName}`);
+                        }
+                    })
+                    .catch(err => {
+                        // Không làm gì cả, chỉ log lỗi
+                        console.error(`[Cache-Warmer] Tải nền thất bại (lỗi mạng): ${sourceName}`, err.message);
+                    });
+            });
+        }
+
+        // Sự kiện khi trang được tải xong (ĐÃ CẬP NHẬT)
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Gắn sự kiện click cho toàn bộ thanh nav (event delegation)
             feedNav.addEventListener('click', handleFeedButtonClick);
+
+            // 1. Tải feed đầu tiên (VnExpress) khi mới vào trang
             const defaultFeed = feedNav.querySelector('.feed-button.active');
             if (defaultFeed) {
-                fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
+                // Dùng await để CHỜ cho feed đầu tiên tải xong
+                await fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
             }
+            
+            // 2. [MỚI] Sau khi feed đầu tiên xong, bắt đầu tải ngầm các feed khác
+            // Dùng setTimeout 0 giây để tác vụ này chạy ngay sau khi
+            // trình duyệt rảnh (không block UI)
+            setTimeout(prewarmCache, 0); 
         });
 
+        // Sự kiện modal (Không thay đổi)
         closeModalButton.addEventListener('click', () => {
             modal.classList.add('hidden');
             summaryContent.innerHTML = ''; 
