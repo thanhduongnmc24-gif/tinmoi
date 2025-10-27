@@ -50,7 +50,7 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
         }
         
-        /* [MỚI] CSS cho bong bóng chat */
+        /* CSS cho bong bóng chat */
         .chat-bubble {
             max-width: 80%;
             padding: 10px 16px;
@@ -79,13 +79,13 @@
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-white hidden sm:block">Tin Tức Tổng Hợp</h1>
             <div id="feed-nav" class="flex space-x-2 overflow-x-auto whitespace-nowrap py-1">
-                <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
+                <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/thoi-su.rss" data-source="VnExpress">VnExpress</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://vtv.vn/rss/home.rss" data-source="VTV">VTV</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thethao247.vn/bong-da.rss" data-source="Thể Thao 247">Thể Thao 247</button>
-                <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
+                <button class="feed-button px-4 py-2 rounded-lg" data-rss="24h.com.vn/upload/rss/bongda.rss" data-source="24h.com.vn">24h</button>
             </div>
         </nav>
     </header>
@@ -155,13 +155,10 @@
 
         // ----- BỘ NHỚ ĐỆM (CACHE) -----
         const clientRssCache = new Map(); // Cache RSS phía trình duyệt
-        
-        // [MỚI] Biến lưu lịch sử chat.
-        // Đây là một mảng các đối tượng { role: 'user'/'model', parts: [{ text: '...' }] }
-        let chatHistory = [];
+        let chatHistory = []; // Lịch sử chat
 
 
-        // ----- HÀM GỌI API (Tóm tắt) (Không thay đổi) -----
+        // ----- HÀM GỌI API (Tóm tắt) -----
         async function callGeminiAPI(prompt) {
             summaryContent.innerHTML = `<div class="spinner border-t-blue-500"></div>`;
             summaryModal.classList.remove('hidden');
@@ -180,9 +177,9 @@
             }
         }
 
-        // ----- [CẬP NHẬT] HÀM GỌI API (Chat) -----
+        // ----- HÀM GỌI API (Chat) -----
         async function callChatAPI() {
-            // [MỚI] Thêm bong bóng "loading" vào UI
+            // Thêm bong bóng "loading"
             const loadingBubble = document.createElement('div');
             loadingBubble.className = 'model-bubble';
             loadingBubble.innerHTML = `<div class="spinner border-t-white" style="width: 20px; height: 20px;"></div>`;
@@ -190,7 +187,7 @@
             chatDisplay.scrollTop = chatDisplay.scrollHeight; // Cuộn xuống
             
             try {
-                // [CẬP NHẬT] Gửi toàn bộ 'chatHistory'
+                // Gửi toàn bộ 'chatHistory'
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -205,16 +202,16 @@
                 const result = await response.json();
                 const answer = result.answer;
 
-                // [MỚI] Thêm câu trả lời của AI vào lịch sử
+                // Thêm câu trả lời của AI vào lịch sử
                 chatHistory.push({ role: "model", parts: [{ text: answer }] });
                 
-                // [MỚI] Xóa bong bóng loading và hiển thị câu trả lời
+                // Xóa bong bóng loading và hiển thị câu trả lời
                 chatDisplay.removeChild(loadingBubble);
                 renderChatHistory(); // Vẽ lại toàn bộ chat
 
             } catch (error) {
                 console.error("Lỗi khi gọi API chat:", error);
-                // [MỚI] Xóa loading và hiển thị lỗi
+                // Xóa loading và hiển thị lỗi
                 chatDisplay.removeChild(loadingBubble);
                 const errorBubble = document.createElement('div');
                 errorBubble.className = 'model-bubble';
@@ -227,7 +224,7 @@
         }
 
 
-        // ----- HÀM XỬ LÝ RSS (Không thay đổi) -----
+        // ----- HÀM XỬ LÝ RSS -----
         async function fetchRSS(rssUrl, sourceName, { display = true } = {}) {
             if (display) {
                 loadingSpinner.classList.remove('hidden');
@@ -267,7 +264,7 @@
             }
         }
 
-        // ----- HÀM HIỂN THỊ (Không thay đổi) -----
+        // ----- HÀM HIỂN THỊ -----
         function displayArticles(items, sourceName) {
             newsGrid.innerHTML = '';
             items.forEach(item => {
@@ -315,11 +312,20 @@
         }
 
         // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt) -----
+        
+        // [CẬP NHẬT] Thêm cuộn lên đầu trang
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
             if (!clickedButton || clickedButton.classList.contains('active')) return; 
+
+            // --- THAY ĐỔI Ở ĐÂY ---
+            // Thêm lệnh cuộn lên đầu trang, 'smooth' để cuộn mượt
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // ---------------------
+
             feedNav.querySelectorAll('.feed-button').forEach(btn => btn.classList.remove('active'));
             clickedButton.classList.add('active');
+            
             fetchRSS(clickedButton.dataset.rss, clickedButton.dataset.source);
         }
 
@@ -341,70 +347,48 @@
             `;
         }
         
-        // ----- [MỚI] HÀM XỬ LÝ SỰ KIỆN (Chat) -----
+        // ----- HÀM XỬ LÝ SỰ KIỆN (Chat) -----
         
-        /**
-         * [MỚI] Vẽ lại toàn bộ lịch sử chat ra màn hình
-         */
         function renderChatHistory() {
-            chatDisplay.innerHTML = ''; // Xóa sạch
-            
+            chatDisplay.innerHTML = ''; 
             if (chatHistory.length === 0) {
                  chatDisplay.innerHTML = `<div class="model-bubble">Xin chào! Bạn muốn hỏi gì hôm nay?</div>`;
                  return;
             }
-            
             chatHistory.forEach(message => {
                 const bubble = document.createElement('div');
                 bubble.className = 'chat-bubble';
-                
                 if (message.role === 'user') {
                     bubble.classList.add('user-bubble');
                 } else {
                     bubble.classList.add('model-bubble');
                 }
-                
+                bubble.style.whiteSpace = "pre-wrap"; 
                 bubble.textContent = message.parts[0].text;
                 chatDisplay.appendChild(bubble);
             });
-            
-            // Cuộn xuống cuối cùng
             chatDisplay.scrollTop = chatDisplay.scrollHeight;
         }
 
-        /**
-         * [CẬP NHẬT] Xử lý khi nhấn nút Gửi (Send) trong modal chat
-         */
         async function handleSendChat(e) {
             e.preventDefault(); 
             const prompt = chatInput.value.trim();
             if (!prompt) return; 
-
-            // [MỚI] Thêm câu hỏi của user vào lịch sử
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            
-            // [MỚI] Vẽ lại UI ngay lập tức
             renderChatHistory(); 
-            
-            chatInput.value = ''; // Xóa input
-            
-            // [CẬP NHẬT] Gọi API. Hàm này giờ sẽ tự xử lý
-            // việc thêm câu trả lời của AI vào history và vẽ lại UI
+            chatInput.value = ''; 
             await callChatAPI();
         }
 
-        /**
-         * [MỚI] Hàm reset cuộc trò chuyện
-         */
         function resetChat() {
-            chatHistory = []; // Xóa lịch sử
-            renderChatHistory(); // Vẽ lại UI (hiện câu chào)
+            chatHistory = []; 
+            renderChatHistory(); 
         }
 
 
         // ----- GẮN KẾT CÁC SỰ KIỆN -----
 
-        // Cache warmer (Không thay đổi)
+        // Cache warmer
         function prewarmCache() {
             console.log("[Cache-Warmer] Bắt đầu tải nền các feed khác...");
             const feedsToPrewarm = Array.from(feedNav.querySelectorAll('.feed-button:not(.active)'));
@@ -413,7 +397,7 @@
             });
         }
 
-        // Tải trang (Không thay đổi)
+        // Tải trang
         document.addEventListener('DOMContentLoaded', async () => {
             feedNav.addEventListener('click', handleFeedButtonClick);
             const defaultFeed = feedNav.querySelector('.feed-button.active');
@@ -423,27 +407,23 @@
             setTimeout(prewarmCache, 0); 
         });
 
-        // Sự kiện modal Tóm tắt (Không thay đổi)
+        // Sự kiện modal Tóm tắt
         closeModalButton.addEventListener('click', () => summaryModal.classList.add('hidden'));
         summaryModal.addEventListener('click', (e) => {
             if (e.target === summaryModal) summaryModal.classList.add('hidden');
         });
 
-        // [CẬP NHẬT] GẮN SỰ KIỆN CHO CHAT 
-        
-        // Mở modal chat
+        // GẮN SỰ KIỆN CHO CHAT 
         chatFab.addEventListener('click', () => {
             chatModal.classList.remove('hidden');
             chatInput.focus(); 
         });
         
-        // Đóng modal chat (và reset)
         closeChatModal.addEventListener('click', () => {
             chatModal.classList.add('hidden');
             resetChat();
         });
 
-        // Đóng modal chat khi nhấn ra ngoài (và reset)
         chatModal.addEventListener('click', (e) => {
             if (e.target === chatModal) {
                 chatModal.classList.add('hidden');
@@ -451,7 +431,6 @@
             }
         });
         
-        // Gửi câu hỏi
         chatForm.addEventListener('submit', handleSendChat);
 
     </script>
