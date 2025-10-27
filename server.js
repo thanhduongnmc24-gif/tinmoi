@@ -3,16 +3,17 @@ import express from 'express'; // Framework để tạo server
 import fetch from 'node-fetch'; // Giống 'fetch' của trình duyệt, nhưng cho server
 import cors from 'cors';      // Cho phép frontend gọi backend
 
+// ----- CÀI ĐẶT CACHE -----
+const cache = new Map(); // Dùng Map để lưu cache
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 phút
+
 // --- Cài đặt Server ---
 const app = express();
 const PORT = process.env.PORT || 3000; // Render sẽ cung cấp PORT
 
 // --- Middleware ---
-// Cho phép mọi tên miền gọi đến server này (để test, Render sẽ tự xử lý)
 app.use(cors()); 
-// Cho phép server đọc JSON gửi từ frontend
 app.use(express.json()); 
-// Quan trọng: Phục vụ file 'index.html' (và CSS/JS nếu có) từ thư mục gốc
 app.use(express.static('.')); 
 
 // Lấy API Key từ Biến Môi Trường (an toàn)
@@ -21,7 +22,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 // ----- CÁC ENDPOINT (CỔNG GIAO TIẾP) -----
 
 /**
- * Endpoint 1: Lấy RSS feed
+ * Endpoint 1: Lấy RSS feed (ĐÃ CÓ CACHE)
  * Frontend sẽ gọi: /get-rss?url=https://...
  */
 app.get('/get-rss', async (req, res) => {
@@ -30,7 +31,27 @@ app.get('/get-rss', async (req, res) => {
         return res.status(400).send('Thiếu tham số url');
     }
 
+    const now = Date.now();
+
+    // ---- KIỂM TRA CACHE ----
+    if (cache.has(rssUrl)) {
+        const cachedItem = cache.get(rssUrl);
+        // Kiểm tra xem cache còn hạn không
+        if (now - cachedItem.timestamp < CACHE_DURATION_MS) {
+            console.log(`[CACHE] Gửi ${rssUrl} từ cache.`);
+            res.type('application/xml');
+            return res.send(cachedItem.data); // Gửi cache và kết thúc
+        } else {
+            // Cache cũ, xóa đi
+            cache.delete(rssUrl);
+            console.log(`[CACHE] Cache ${rssUrl} đã hết hạn.`);
+        }
+    }
+    // ---- HẾT KIỂM TRA CACHE ----
+
+
     try {
+        console.log(`[FETCH] Đang fetch mới ${rssUrl}...`);
         // Server fetch trực tiếp, không cần proxy, không lo CORS!
         const response = await fetch(rssUrl);
         if (!response.ok) {
@@ -38,6 +59,13 @@ app.get('/get-rss', async (req, res) => {
         }
         const xmlText = await response.text();
         
+        // ---- LƯU VÀO CACHE ----
+        cache.set(rssUrl, {
+            data: xmlText,
+            timestamp: now
+        });
+        console.log(`[CACHE] Đã lưu ${rssUrl} vào cache.`);
+
         // Gửi lại nội dung XML thô cho frontend
         res.type('application/xml');
         res.send(xmlText);
@@ -49,7 +77,7 @@ app.get('/get-rss', async (req, res) => {
 });
 
 /**
- * Endpoint 2: Tóm tắt AI
+ * Endpoint 2: Tóm tắt AI (Không cần cache vì mỗi prompt là duy nhất)
  * Frontend sẽ gọi: /summarize (với method POST)
  */
 app.post('/summarize', async (req, res) => {
