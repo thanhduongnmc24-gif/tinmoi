@@ -83,7 +83,7 @@ app.post('/summarize', async (req, res) => {
     if (!prompt) return res.status(400).send('Thiếu prompt');
     if (!API_KEY) return res.status(500).send('API Key chưa được cấu hình trên server');
 
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
     
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
