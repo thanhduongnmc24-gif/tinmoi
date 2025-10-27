@@ -49,6 +49,25 @@
             border-color: #3B82F6; /* border-blue-500 */
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
         }
+        
+        /* [MỚI] CSS cho bong bóng chat */
+        .chat-bubble {
+            max-width: 80%;
+            padding: 10px 16px;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .user-bubble {
+            background-color: #3B82F6; /* bg-blue-500 */
+            color: white;
+            align-self: flex-end; /* Căn phải */
+        }
+        .model-bubble {
+            background-color: #4B5563; /* bg-gray-600 */
+            color: #E5E7EB; /* text-gray-200 */
+            align-self: flex-start; /* Căn trái */
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,8 +94,7 @@
         <div id="loading-spinner" class="flex justify-center items-center h-64">
             <div class="spinner border-t-blue-500" style="width: 50px; height: 50px;"></div>
         </div>
-        <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            </div>
+        <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </main>
 
     <div id="summary-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
@@ -85,8 +103,7 @@
                 <h2 class="text-2xl font-bold text-white">Bản Tóm Tắt AI</h2>
                 <button id="close-modal-button" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
-            <div id="summary-content" class="min-h-[200px] flex items-center justify-center">
-                </div>
+            <div id="summary-content" class="min-h-[200px] flex items-center justify-center"></div>
         </div>
     </div>
 
@@ -103,8 +120,8 @@
                 <button id="close-chat-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
             
-            <div id="chat-display" class="min-h-[200px] bg-gray-900 p-4 rounded-lg mb-4 overflow-y-auto flex-grow text-gray-200 whitespace-pre-wrap leading-relaxed">
-                Xin chào! Bạn muốn hỏi gì hôm nay?
+            <div id="chat-display" class="min-h-[200px] bg-gray-900 p-4 rounded-lg mb-4 overflow-y-auto flex-grow flex flex-col">
+                <div class="model-bubble">Xin chào! Bạn muốn hỏi gì hôm nay?</div>
             </div>
             
             <form id="chat-form" class="flex space-x-2">
@@ -120,7 +137,7 @@
 
 
     <script type="module">
-        // ----- BIẾN TOÀN CỤC (Tóm tắt) -----
+        // ----- BIẾN TOÀN CỤC (RSS) -----
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
         const summaryModal = document.getElementById('summary-modal');
@@ -136,10 +153,12 @@
         const chatInput = document.getElementById('chat-input');
         const chatDisplay = document.getElementById('chat-display');
 
-        // ----- [MỚI] BỘ NHỚ ĐỆM PHÍA TRÌNH DUYỆT -----
-        // Biến này sẽ lưu trữ RSS data sau khi tải.
-        // Nó sẽ bị xóa khi trang F5.
-        const clientRssCache = new Map();
+        // ----- BỘ NHỚ ĐỆM (CACHE) -----
+        const clientRssCache = new Map(); // Cache RSS phía trình duyệt
+        
+        // [MỚI] Biến lưu lịch sử chat.
+        // Đây là một mảng các đối tượng { role: 'user'/'model', parts: [{ text: '...' }] }
+        let chatHistory = [];
 
 
         // ----- HÀM GỌI API (Tóm tắt) (Không thay đổi) -----
@@ -161,59 +180,70 @@
             }
         }
 
-        // ----- HÀM GỌI API (Chat) (Không thay đổi) -----
-        async function callChatAPI(prompt) {
-            chatDisplay.innerHTML = `<div class="flex justify-center items-center h-full"><div class="spinner border-t-blue-500"></div></div>`;
+        // ----- [CẬP NHẬT] HÀM GỌI API (Chat) -----
+        async function callChatAPI() {
+            // [MỚI] Thêm bong bóng "loading" vào UI
+            const loadingBubble = document.createElement('div');
+            loadingBubble.className = 'model-bubble';
+            loadingBubble.innerHTML = `<div class="spinner border-t-white" style="width: 20px; height: 20px;"></div>`;
+            chatDisplay.appendChild(loadingBubble);
+            chatDisplay.scrollTop = chatDisplay.scrollHeight; // Cuộn xuống
+            
             try {
+                // [CẬP NHẬT] Gửi toàn bộ 'chatHistory'
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
+                    body: JSON.stringify({ history: chatHistory }) 
                 });
+                
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Lỗi server: ${errorText}`);
                 }
+                
                 const result = await response.json();
-                return result.answer; 
+                const answer = result.answer;
+
+                // [MỚI] Thêm câu trả lời của AI vào lịch sử
+                chatHistory.push({ role: "model", parts: [{ text: answer }] });
+                
+                // [MỚI] Xóa bong bóng loading và hiển thị câu trả lời
+                chatDisplay.removeChild(loadingBubble);
+                renderChatHistory(); // Vẽ lại toàn bộ chat
+
             } catch (error) {
                 console.error("Lỗi khi gọi API chat:", error);
-                return `Đã xảy ra lỗi khi cố gắng chat: ${error.message}.`;
+                // [MỚI] Xóa loading và hiển thị lỗi
+                chatDisplay.removeChild(loadingBubble);
+                const errorBubble = document.createElement('div');
+                errorBubble.className = 'model-bubble';
+                errorBubble.style.backgroundColor = '#991B1B'; // bg-red-700
+                errorBubble.textContent = `Lỗi: ${error.message}`;
+                chatDisplay.appendChild(errorBubble);
+            } finally {
+                chatDisplay.scrollTop = chatDisplay.scrollHeight; // Cuộn xuống cuối
             }
         }
 
 
-        // ----- HÀM XỬ LÝ RSS (ĐÃ CẬP NHẬT) -----
-        /**
-         * @param {string} rssUrl - URL của RSS feed.
-         * @param {string} sourceName - Tên nguồn tin.
-         * @param {object} [options] - Tùy chọn
-         * @param {boolean} [options.display=true] - Có hiển thị spinner và cập nhật UI không.
-         */
+        // ----- HÀM XỬ LÝ RSS (Không thay đổi) -----
         async function fetchRSS(rssUrl, sourceName, { display = true } = {}) {
             if (display) {
                 loadingSpinner.classList.remove('hidden');
                 newsGrid.innerHTML = '';
             }
-
-            // ---- [MỚI] KIỂM TRA CLIENT CACHE TRƯỚC ----
             if (clientRssCache.has(rssUrl)) {
-                console.log(`[CLIENT CACHE] Lấy ${sourceName} từ cache trình duyệt.`);
-                const items = clientRssCache.get(rssUrl);
                 if (display) {
-                    displayArticles(items, sourceName);
+                    displayArticles(clientRssCache.get(rssUrl), sourceName);
                     loadingSpinner.classList.add('hidden');
                 }
-                return; // Kết thúc, không cần gọi server
+                return;
             }
-
-            // ---- NẾU KHÔNG CÓ, GỌI SERVER (server cũng có cache 10 phút) ----
             try {
-                console.log(`[FETCH] Đang gọi server cho ${sourceName}...`);
                 const response = await fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`);
                 if (!response.ok) throw new Error('Lỗi server (RSS)');
                 const str = await response.text();
-                
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(str, "text/xml");
                 if (xmlDoc.getElementsByTagName("parsererror").length) throw new Error("Lỗi phân tích XML");
@@ -227,25 +257,13 @@
                 } else {
                      items = Array.from(itemNodes);
                 }
-
-                // ---- [MỚI] LƯU VÀO CLIENT CACHE ----
-                console.log(`[CLIENT CACHE] Đã lưu ${sourceName} vào cache trình duyệt.`);
                 clientRssCache.set(rssUrl, items);
-
-                // Hiển thị nếu được yêu cầu
-                if (display) {
-                    displayArticles(items, sourceName);
-                }
-
+                if (display) displayArticles(items, sourceName);
             } catch (error) {
                 console.error(`Lỗi tải RSS ${sourceName}:`, error);
-                if (display) {
-                    newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
-                }
+                if (display) newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
             } finally {
-                if (display) {
-                    loadingSpinner.classList.add('hidden');
-                }
+                if (display) loadingSpinner.classList.add('hidden');
             }
         }
 
@@ -296,20 +314,15 @@
             });
         }
 
-        // ----- HÀM XỬ LÝ SỰ KIỆN (ĐÃ CẬP NHẬT) -----
+        // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt) -----
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
             if (!clickedButton || clickedButton.classList.contains('active')) return; 
-
             feedNav.querySelectorAll('.feed-button').forEach(btn => btn.classList.remove('active'));
             clickedButton.classList.add('active');
-            
-            // [CẬP NHẬT] Gọi fetchRSS. Hàm này sẽ tự kiểm tra cache
-            // và hiển thị ngay lập tức nếu đã có.
             fetchRSS(clickedButton.dataset.rss, clickedButton.dataset.source);
         }
 
-        // HÀM XỬ LÝ TÓM TẮT (Không thay đổi)
         async function handleSummaryClick(title, description) {
             if (!description || description === "Không có mô tả.") {
                 summaryContent.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt.</p>`;
@@ -328,43 +341,75 @@
             `;
         }
         
-        // HÀM XỬ LÝ CHAT (Không thay đổi)
+        // ----- [MỚI] HÀM XỬ LÝ SỰ KIỆN (Chat) -----
+        
+        /**
+         * [MỚI] Vẽ lại toàn bộ lịch sử chat ra màn hình
+         */
+        function renderChatHistory() {
+            chatDisplay.innerHTML = ''; // Xóa sạch
+            
+            if (chatHistory.length === 0) {
+                 chatDisplay.innerHTML = `<div class="model-bubble">Xin chào! Bạn muốn hỏi gì hôm nay?</div>`;
+                 return;
+            }
+            
+            chatHistory.forEach(message => {
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+                
+                if (message.role === 'user') {
+                    bubble.classList.add('user-bubble');
+                } else {
+                    bubble.classList.add('model-bubble');
+                }
+                
+                bubble.textContent = message.parts[0].text;
+                chatDisplay.appendChild(bubble);
+            });
+            
+            // Cuộn xuống cuối cùng
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        }
+
+        /**
+         * [CẬP NHẬT] Xử lý khi nhấn nút Gửi (Send) trong modal chat
+         */
         async function handleSendChat(e) {
             e.preventDefault(); 
             const prompt = chatInput.value.trim();
             if (!prompt) return; 
 
-            chatInput.value = ''; 
+            // [MỚI] Thêm câu hỏi của user vào lịch sử
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             
-            const answer = await callChatAPI(prompt);
+            // [MỚI] Vẽ lại UI ngay lập tức
+            renderChatHistory(); 
             
-            chatDisplay.innerHTML = `
-                <div class="mb-4">
-                    <strong class="text-blue-400">Câu hỏi của bạn:</strong>
-                    <p class="mt-1 text-gray-300">${prompt}</p>
-                </div>
-                <hr class="border-gray-600 my-4">
-                <div>
-                    <strong class="text-green-400">Câu trả lời từ AI:</strong>
-                    <p class="mt-1">${answer}</p>
-                </div>
-            `;
+            chatInput.value = ''; // Xóa input
+            
+            // [CẬP NHẬT] Gọi API. Hàm này giờ sẽ tự xử lý
+            // việc thêm câu trả lời của AI vào history và vẽ lại UI
+            await callChatAPI();
         }
+
+        /**
+         * [MỚI] Hàm reset cuộc trò chuyện
+         */
+        function resetChat() {
+            chatHistory = []; // Xóa lịch sử
+            renderChatHistory(); // Vẽ lại UI (hiện câu chào)
+        }
+
 
         // ----- GẮN KẾT CÁC SỰ KIỆN -----
 
-        // Gắn sự kiện cho cache warmer (ĐÃ CẬP NHẬT)
+        // Cache warmer (Không thay đổi)
         function prewarmCache() {
             console.log("[Cache-Warmer] Bắt đầu tải nền các feed khác...");
             const feedsToPrewarm = Array.from(feedNav.querySelectorAll('.feed-button:not(.active)'));
-            
             feedsToPrewarm.forEach(feed => {
-                const rssUrl = feed.dataset.rss;
-                const sourceName = feed.dataset.source;
-                
-                // [CẬP NHẬT] Gọi fetchRSS với chế độ "không hiển thị"
-                // Hàm này sẽ gọi server và lưu vào clientRssCache.
-                fetchRSS(rssUrl, sourceName, { display: false });
+                fetchRSS(feed.dataset.rss, feed.dataset.source, { display: false });
             });
         }
 
@@ -373,10 +418,8 @@
             feedNav.addEventListener('click', handleFeedButtonClick);
             const defaultFeed = feedNav.querySelector('.feed-button.active');
             if (defaultFeed) {
-                // Tải và hiển thị feed mặc định
                 await fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
             }
-            // Tải ngầm các feed khác
             setTimeout(prewarmCache, 0); 
         });
 
@@ -386,24 +429,29 @@
             if (e.target === summaryModal) summaryModal.classList.add('hidden');
         });
 
-        // GẮN SỰ KIỆN CHO CHAT (Không thay đổi)
+        // [CẬP NHẬT] GẮN SỰ KIỆN CHO CHAT 
+        
+        // Mở modal chat
         chatFab.addEventListener('click', () => {
             chatModal.classList.remove('hidden');
             chatInput.focus(); 
         });
         
+        // Đóng modal chat (và reset)
         closeChatModal.addEventListener('click', () => {
             chatModal.classList.add('hidden');
-            chatDisplay.innerHTML = "Xin chào! Bạn muốn hỏi gì hôm nay?";
+            resetChat();
         });
 
+        // Đóng modal chat khi nhấn ra ngoài (và reset)
         chatModal.addEventListener('click', (e) => {
             if (e.target === chatModal) {
                 chatModal.classList.add('hidden');
-                chatDisplay.innerHTML = "Xin chào! Bạn muốn hỏi gì hôm nay?";
+                resetChat();
             }
         });
         
+        // Gửi câu hỏi
         chatForm.addEventListener('submit', handleSendChat);
 
     </script>
