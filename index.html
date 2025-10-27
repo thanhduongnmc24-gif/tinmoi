@@ -79,7 +79,7 @@
         <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-white hidden sm:block">Tin Tức Tổng Hợp</h1>
             <div id="feed-nav" class="flex space-x-2 overflow-x-auto whitespace-nowrap py-1">
-                <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/thoi-su.rss" data-source="VnExpress">VnExpress</button>
+                <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
                 <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
@@ -101,7 +101,7 @@
         <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold text-white">Bản Tóm Tắt AI</h2>
-                <button id="close-modal-button" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                <button id="close-summary-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
             <div id="summary-content" class="min-h-[200px] flex items-center justify-center"></div>
         </div>
@@ -141,7 +141,7 @@
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
         const summaryModal = document.getElementById('summary-modal');
-        const closeModalButton = document.getElementById('close-modal-button');
+        const closeModalButton = document.getElementById('close-summary-modal'); // Đã sửa ID
         const summaryContent = document.getElementById('summary-content');
         const feedNav = document.getElementById('feed-nav');
  
@@ -264,7 +264,7 @@
             }
         }
 
-        // ----- HÀM HIỂN THỊ -----
+        // ----- HÀM HIỂN THỊ (ĐÃ CẬP NHẬT) -----
         function displayArticles(items, sourceName) {
             newsGrid.innerHTML = '';
             items.forEach(item => {
@@ -283,11 +283,11 @@
                 if (descriptionText.startsWith(title)) {
                     descriptionText = descriptionText.substring(title.length).trim();
                 }
-                const card = document.createElement('a');
-                card.href = link;
-                card.target = "_blank"; 
-                card.rel = "noopener noreferrer";
-                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20 block"; 
+
+                // [CẬP NHẬT] Đổi thẻ <a> thành <div>
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20"; 
+                
                 card.innerHTML = `
                     <img src="${imgSrc}" alt="${title}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/374151/9CA3AF?text=Error';">
                     <div class="p-5">
@@ -295,15 +295,27 @@
                         <h3 class="text-lg font-bold text-white mt-2 mb-3 leading-tight h-20 overflow-hidden">${title}</h3>
                         <div class="flex justify-between items-center mt-4">
                             <p class="text-sm text-gray-400">${pubDate ? new Date(pubDate).toLocaleString('vi-VN') : ''}</p>
+                            
+                            <button class="read-btn bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
+                                Đọc
+                            </button>
                             <button class="summary-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
                                 Tóm tắt
                             </button>
                         </div>
                     </div>
                 `;
+                
+                // [MỚI] Gắn sự kiện cho nút "Đọc tại đây"
+                const readButton = card.querySelector('.read-btn');
+                readButton.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Ngăn sự kiện click khác
+                    handleReadClick(title, descriptionText, imgSrc, sourceName, link);
+                });
+
+                // Gắn sự kiện cho nút "Tóm tắt"
                 const summaryButton = card.querySelector('.summary-btn');
                 summaryButton.addEventListener('click', (e) => {
-                    e.preventDefault(); 
                     e.stopPropagation(); 
                     handleSummaryClick(title, descriptionText);
                 });
@@ -313,19 +325,12 @@
 
         // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt) -----
         
-        // [CẬP NHẬT] Thêm cuộn lên đầu trang
         function handleFeedButtonClick(e) {
             const clickedButton = e.target.closest('.feed-button');
             if (!clickedButton || clickedButton.classList.contains('active')) return; 
-
-            // --- THAY ĐỔI Ở ĐÂY ---
-            // Thêm lệnh cuộn lên đầu trang, 'smooth' để cuộn mượt
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            // ---------------------
-
             feedNav.querySelectorAll('.feed-button').forEach(btn => btn.classList.remove('active'));
             clickedButton.classList.add('active');
-            
             fetchRSS(clickedButton.dataset.rss, clickedButton.dataset.source);
         }
 
@@ -347,6 +352,17 @@
             `;
         }
         
+        // ----- [MỚI] HÀM XỬ LÝ SỰ KIỆN (Đọc tin) -----
+        function handleReadClick(title, description, imgSrc, sourceName, link) {
+            readTitle.textContent = title;
+            readDescription.textContent = description;
+            readImage.src = imgSrc;
+            readSource.textContent = sourceName;
+            readOriginalLink.href = link; // Cập nhật link cho nút "Đọc bài gốc"
+            
+            readModal.classList.remove('hidden');
+        }
+
         // ----- HÀM XỬ LÝ SỰ KIỆN (Chat) -----
         
         function renderChatHistory() {
@@ -412,6 +428,13 @@
         summaryModal.addEventListener('click', (e) => {
             if (e.target === summaryModal) summaryModal.classList.add('hidden');
         });
+
+        // [MỚI] GẮN SỰ KIỆN CHO MODAL ĐỌC TIN
+        closeReadModal.addEventListener('click', () => readModal.classList.add('hidden'));
+        readModal.addEventListener('click', (e) => {
+            if (e.target === readModal) readModal.classList.add('hidden');
+        });
+
 
         // GẮN SỰ KIỆN CHO CHAT 
         chatFab.addEventListener('click', () => {
