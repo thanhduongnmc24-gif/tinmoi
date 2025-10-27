@@ -59,21 +59,19 @@ app.get('/get-rss', async (req, res) => {
 });
 
 /**
- * Endpoint 2: Tóm tắt AI (Không thay đổi)
+ * Endpoint 2: Tóm tắt AI (CẬP NHẬT)
  */
 app.post('/summarize', async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).send('Thiếu prompt');
     if (!API_KEY) return res.status(500).send('API Key chưa được cấu hình trên server');
 
-    // Model này dùng để tóm tắt nội dung được cung cấp
-    // (Đã sửa lại tên model cho đúng)
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
     
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
         systemInstruction: {
-            parts: [{ text: "Bạn là một trợ lý tóm tắt tin tức. Hãy tóm tắt nội dung được cung cấp một cách súc tích, chính xác trong khoảng 100-150 từ, sử dụng ngôn ngữ tiếng Việt." }]
+            parts: [{ text: "Bạn là một trợ lý tóm tắt tin tức. Hãy tóm tắt nội dung được cung cấp một cách súc tích, chính xác trong khoảng 100-150 từ, sử dụng ngôn ngữ tiếng Việt. Luôn giả định người dùng đang ở múi giờ Hà Nội (GMT+7)." }]
         },
     };
 
@@ -99,10 +97,9 @@ app.post('/summarize', async (req, res) => {
 });
 
 /**
- * [CẬP NHẬT] Endpoint 3: Chat AI (Kết hợp History + Google Search)
+ * Endpoint 3: Chat AI (CẬP NHẬT)
  */
 app.post('/chat', async (req, res) => {
-    // Sửa lại: Nhận 'history' (từ bước trước) thay vì 'prompt'
     const { history } = req.body; 
     
     if (!history || history.length === 0) {
@@ -113,12 +110,11 @@ app.post('/chat', async (req, res) => {
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
     
     const payload = {
-        // Gửi toàn bộ lịch sử (để nhớ bối cảnh)
         contents: history, 
         systemInstruction: {
-            parts: [{ text: "Bạn là một trợ lý AI hữu ích và thân thiện. Hãy trả lời các câu hỏi của người dùng bằng tiếng Việt một cách rõ ràng và chi tiết. Hãy chủ động sử dụng công cụ tìm kiếm để trả lời các câu hỏi về thông tin mới, thời sự hoặc các sự kiện sau tháng 1 năm 2025." }]
+            // [ĐÃ THÊM MÚI GIỜ]
+            parts: [{ text: "Bạn là một trợ lý AI hữu ích và thân thiện. Hãy trả lời các câu hỏi của người dùng bằng tiếng Việt một cách rõ ràng và chi tiết. Hãy chủ động sử dụng công cụ tìm kiếm để trả lời các câu hỏi về thông tin mới. Luôn giả định rằng người dùng đang ở Hà Nội (múi giờ GMT+7) khi trả lời các câu hỏi liên quan đến thời gian." }]
         },
-        // Bật công cụ Google Search (như bạn đã thêm)
         tools: [
             { "google_search": {} }
         ]
