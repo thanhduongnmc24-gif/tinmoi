@@ -6,76 +6,21 @@
     <title>Tin Tức Tổng Hợp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Thêm font Inter cho đẹp */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* CSS cho spinner loading */
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #fff;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* CSS cho nút feed đang active (cả desktop và mobile) */
-        .feed-button.active {
-            background-color: white;
-            color: #111827; /* text-gray-900 */
-            font-weight: 600;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        }
-        .feed-button { /* Mặc định cho desktop */
-            color: #D1D5DB; /* text-gray-300 */
-            font-weight: 500; /* font-medium */
-            white-space: nowrap; /* Ngăn xuống dòng */
-            flex-shrink: 0; /* Không co lại */
-        }
-        .feed-button:hover {
-            background-color: #374151; /* hover:bg-gray-700 */
-        }
-         /* Style riêng cho nút mobile */
-        #mobile-menu .feed-button {
-             display: block;
-             width: 100%;
-             text-align: left;
-             padding: 10px 16px; /* py-2.5 px-4 */
-             border-radius: 6px; /* rounded-md */
-             font-weight: 500; /* font-medium */
-             color: #D1D5DB; /* text-gray-300 */
-        }
-         #mobile-menu .feed-button:hover {
-              background-color: #4B5563; /* bg-gray-600 */
-         }
-         #mobile-menu .feed-button.active {
-              background-color: #6B7280; /* bg-gray-500 */
-              color: white;
-         }
-
-
-        /* CSS cho input trong chat modal */
-        #chat-input {
-            background-color: #374151;
-            color: white;
-            border: 1px solid #4B5563;
-        }
-        #chat-input:focus {
-            outline: none;
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-        }
-
-        /* CSS cho bong bóng chat */
+        /* CSS như cũ */
+        body { font-family: 'Inter', sans-serif; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #fff; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .feed-button.active { background-color: white; color: #111827; font-weight: 600; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .feed-button { color: #D1D5DB; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+        .feed-button:hover { background-color: #374151; }
+        #mobile-menu .feed-button { display: block; width: 100%; text-align: left; padding: 10px 16px; border-radius: 6px; font-weight: 500; color: #D1D5DB; }
+        #mobile-menu .feed-button:hover { background-color: #4B5563; }
+        #mobile-menu .feed-button.active { background-color: #6B7280; color: white; }
+        #chat-input { background-color: #374151; color: white; border: 1px solid #4B5563; }
+        #chat-input:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
         .chat-bubble { max-width: 80%; padding: 10px 16px; border-radius: 16px; margin-bottom: 8px; line-height: 1.5; }
         .user-bubble { background-color: #3B82F6; color: white; align-self: flex-end; }
         .model-bubble { background-color: #4B5563; color: #E5E7EB; align-self: flex-start; }
-
-        /* Giới hạn dòng cho mô tả bài viết */
         .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
         .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     </style>
@@ -87,40 +32,35 @@
 
     <header class="bg-gray-800 shadow-md sticky top-0 z-30">
         <nav class="container mx-auto px-4 py-4 relative">
-            <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-white">Tin Tức Tổng Hợp</h1>
-
-                <div id="feed-nav" class="hidden sm:flex space-x-2 overflow-x-auto py-1">
-                    <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
-                    <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
-                    <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
-                    <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
-                    <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://vtv.vn/rss/home.rss" data-source="VTV">VTV</button>
-                    <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thethao247.vn/bong-da.rss" data-source="Thể Thao 247">Thể Thao 247</button>
-                    <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
-                </div>
-
-                <div class="sm:hidden">
-                    <button id="hamburger-button" class="text-gray-300 hover:text-white focus:outline-none focus:text-white p-2">
-                         <span class="sr-only">Mở menu</span>
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
+             <div class="flex justify-between items-center">
+                 <h1 class="text-2xl font-bold text-white">Tin Tức Tổng Hợp</h1>
+                 <div id="feed-nav" class="hidden sm:flex space-x-2 overflow-x-auto py-1">
+                     <button class="feed-button active px-4 py-2 rounded-lg" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
+                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
+                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
+                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
+                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://vtv.vn/rss/home.rss" data-source="VTV">VTV</button>
+                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://thethao247.vn/bong-da.rss" data-source="Thể Thao 247">Thể Thao 247</button>
+                     <button class="feed-button px-4 py-2 rounded-lg" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
+                 </div>
+                 <div class="sm:hidden">
+                     <button id="hamburger-button" class="text-gray-300 hover:text-white focus:outline-none focus:text-white p-2">
+                          <span class="sr-only">Mở menu</span>
+                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                     </button>
+                 </div>
+             </div>
              <div id="mobile-menu" class="hidden sm:hidden bg-gray-700 absolute top-full left-0 right-0 z-20 shadow-lg mt-1 rounded-b-md">
-                <div class="px-2 pt-2 pb-3 space-y-1">
-                    <button class="feed-button active" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
-                    <button class="feed-button" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
-                    <button class="feed-button" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
-                    <button class="feed-button" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
-                    <button class="feed-button" data-rss="https://vtv.vn/rss/home.rss" data-source="VTV">VTV</button>
-                    <button class="feed-button" data-rss="https://thethao247.vn/bong-da.rss" data-source="Thể Thao 247">Thể Thao 247</button>
-                    <button class="feed-button" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
-                </div>
-            </div>
+                 <div class="px-2 pt-2 pb-3 space-y-1">
+                     <button class="feed-button active" data-rss="https://vnexpress.net/rss/tin-moi-nhat.rss" data-source="VnExpress">VnExpress</button>
+                     <button class="feed-button" data-rss="https://tuoitre.vn/rss/tin-moi-nhat.rss" data-source="Tuổi Trẻ">Tuổi Trẻ</button>
+                     <button class="feed-button" data-rss="https://thanhnien.vn/rss/home.rss" data-source="Thanh Niên">Thanh Niên</button>
+                     <button class="feed-button" data-rss="https://dantri.com.vn/rss/home.rss" data-source="Dân Trí">Dân Trí</button>
+                     <button class="feed-button" data-rss="https://vtv.vn/rss/home.rss" data-source="VTV">VTV</button>
+                     <button class="feed-button" data-rss="https://thethao247.vn/bong-da.rss" data-source="Thể Thao 247">Thể Thao 247</button>
+                     <button class="feed-button" data-rss="https://cdn.24h.com.vn/upload/rss/trangchu24h.rss" data-source="24h.com.vn">24h</button>
+                 </div>
+             </div>
         </nav>
     </header>
 
@@ -137,7 +77,14 @@
                 <h2 class="text-2xl font-bold text-white">Bản Tóm Tắt AI</h2>
                 <button id="close-summary-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
-            <div id="summary-content" class="min-h-[200px] flex items-center justify-center"></div>
+            {/* [CẬP NHẬT] Bọc nội dung trong div để dễ quản lý */}
+            <div id="summary-content-wrapper" class="min-h-[200px]">
+                 <div class="text-gray-200 space-y-4">
+                      <h3 id="summary-title" class="text-lg font-semibold text-white"></h3>
+                      {/* Thẻ p này sẽ nhận text streaming */}
+                      <p id="summary-text" class="whitespace-pre-wrap leading-relaxed"></p>
+                 </div>
+            </div>
         </div>
     </div>
 
@@ -148,11 +95,11 @@
     <div id="chat-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
         <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-white">Em là Tèo, trợ lí AI</h2>
+                <h2 class="text-2xl font-bold text-white">Hỏi AI bất cứ điều gì</h2>
                 <button id="close-chat-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
             <div id="chat-display" class="min-h-[200px] bg-gray-900 p-4 rounded-lg mb-4 overflow-y-auto flex-grow flex flex-col">
-                <div class="model-bubble">Đại ca muốn hỏi Tèo về việc gì nào?</div>
+                <div class="model-bubble">Chào đại ca, Tèo xin trả lời bất kỳ câu hỏi nào của đại ca?</div>
             </div>
             <form id="chat-form" class="flex space-x-2">
                 <input type="text" id="chat-input" placeholder="Nhập câu hỏi của bạn..." class="flex-grow p-3 rounded-lg focus:outline-none">
@@ -163,14 +110,18 @@
         </div>
     </div>
 
+
     <script type="module">
         // ----- BIẾN TOÀN CỤC -----
         const newsGrid = document.getElementById('news-grid');
         const loadingSpinner = document.getElementById('loading-spinner');
         const summaryModal = document.getElementById('summary-modal');
         const closeSummaryModalButton = document.getElementById('close-summary-modal');
-        const summaryContent = document.getElementById('summary-content');
-        const feedNav = document.getElementById('feed-nav'); // Desktop nav
+        //const summaryContent = document.getElementById('summary-content'); // Không dùng trực tiếp nữa
+        const summaryContentWrapper = document.getElementById('summary-content-wrapper'); // Wrapper mới
+        const summaryTitleElement = document.getElementById('summary-title'); // Thẻ h3 cho tiêu đề
+        const summaryTextElement = document.getElementById('summary-text'); // Thẻ p cho text streaming
+        const feedNav = document.getElementById('feed-nav');
         const chatFab = document.getElementById('chat-fab');
         const chatModal = document.getElementById('chat-modal');
         const closeChatModal = document.getElementById('close-chat-modal');
@@ -183,27 +134,72 @@
         // ----- CACHE & HISTORY -----
         const clientRssCache = new Map();
         let chatHistory = [];
+        let summaryEventSource = null; // Quản lý kết nối streaming tóm tắt
 
-        // ----- HÀM GỌI API (Tóm tắt) -----
-        async function callGeminiAPI(prompt) {
-            summaryContent.innerHTML = `<div class="spinner border-t-blue-500"></div>`;
-            summaryModal.classList.remove('hidden');
-            try {
-                const response = await fetch('/summarize', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
-                });
-                if (!response.ok) throw new Error('Lỗi server (tóm tắt)');
-                const result = await response.json();
-                return result.summary;
-            } catch (error) {
-                console.error("Lỗi API tóm tắt:", error);
-                return `Rất tiếc, đã xảy ra lỗi: ${error.message}.`;
+        // ----- [CẬP NHẬT] HÀM GỌI API (Tóm tắt - Streaming) -----
+        function callGeminiAPIStreaming(prompt, title) {
+            if (summaryEventSource) {
+                summaryEventSource.close();
+                console.log("Đã đóng stream tóm tắt cũ.");
             }
+
+            summaryTitleElement.textContent = title;
+            summaryTextElement.textContent = ''; // Xóa text cũ
+            summaryModal.classList.remove('hidden');
+
+            const encodedPrompt = encodeURIComponent(prompt);
+            // Đảm bảo endpoint đúng là /summarize-stream
+            const streamUrl = `/summarize-stream?prompt=${encodedPrompt}`;
+
+            summaryEventSource = new EventSource(streamUrl);
+            console.log("Đang kết nối tới stream tóm tắt...");
+
+            summaryTextElement.innerHTML = `<div class="spinner border-t-blue-500 mx-auto" style="width: 30px; height: 30px;"></div>`; // Hiển thị spinner ban đầu
+
+            summaryEventSource.onopen = () => {
+                console.log("Kết nối stream tóm tắt thành công!");
+            };
+
+            summaryEventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (summaryTextElement.querySelector('.spinner')) {
+                         summaryTextElement.innerHTML = ''; // Xóa spinner khi nhận chunk đầu
+                    }
+
+                    if (data.text) {
+                        summaryTextElement.textContent += data.text; // Nối text
+                    } else if (data.error) {
+                        console.error("Lỗi từ stream:", data.error);
+                         summaryTextElement.textContent += `\n\n[Lỗi: ${data.error}]`;
+                         summaryEventSource.close();
+                         summaryEventSource = null;
+                    } else if (data.done) {
+                        console.log("Stream tóm tắt hoàn thành.");
+                        summaryEventSource.close();
+                        summaryEventSource = null;
+                    }
+                } catch (e) {
+                    console.error("Lỗi phân tích dữ liệu stream:", e, event.data);
+                    summaryTextElement.textContent += "\n\n[Lỗi hiển thị dữ liệu]";
+                    if (summaryEventSource) summaryEventSource.close();
+                    summaryEventSource = null;
+                }
+            };
+
+            summaryEventSource.onerror = (error) => {
+                console.error("Lỗi kết nối EventSource:", error);
+                 if (summaryTextElement.querySelector('.spinner')) {
+                     summaryTextElement.innerHTML = '';
+                 }
+                summaryTextElement.textContent += "\n\n[Lỗi kết nối đến server]";
+                if (summaryEventSource) summaryEventSource.close();
+                summaryEventSource = null;
+            };
         }
 
-        // ----- HÀM GỌI API (Chat) -----
+        // ----- HÀM GỌI API (Chat - Không thay đổi) -----
         async function callChatAPI() {
             const loadingBubble = document.createElement('div');
             loadingBubble.className = 'model-bubble';
@@ -242,7 +238,8 @@
             }
         }
 
-        // ----- HÀM XỬ LÝ RSS -----
+
+        // ----- HÀM XỬ LÝ RSS (Không thay đổi) -----
         async function fetchRSS(rssUrl, sourceName, { display = true } = {}) {
             if (display) {
                 loadingSpinner.classList.remove('hidden');
@@ -282,7 +279,7 @@
             }
         }
 
-        // ----- HÀM HIỂN THỊ -----
+        // ----- HÀM HIỂN THỊ (Không thay đổi) -----
         function displayArticles(items, sourceName) {
             newsGrid.innerHTML = '';
             items.forEach(item => {
@@ -323,8 +320,9 @@
 
                  card.addEventListener('click', (e) => {
                      if (e.target.closest('.summary-btn')) {
-                         return;
+                         return; // Để sự kiện nút tóm tắt chạy
                      }
+                     // Mặc định thẻ <a> sẽ điều hướng trong tab hiện tại
                  });
 
                 const summaryButton = card.querySelector('.summary-btn');
@@ -337,46 +335,39 @@
             });
         }
 
-        // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt) -----
+        // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt - ĐÃ CẬP NHẬT) -----
         function handleFeedButtonClick(e) {
-            const clickedButton = e.target.closest('.feed-button');
-            if (!clickedButton || clickedButton.classList.contains('active')) return;
+             const clickedButton = e.target.closest('.feed-button');
+             if (!clickedButton || clickedButton.classList.contains('active')) return;
 
-            const rssUrl = clickedButton.dataset.rss;
-            const sourceName = clickedButton.dataset.source;
+             const rssUrl = clickedButton.dataset.rss;
+             const sourceName = clickedButton.dataset.source;
 
-            // Đồng bộ trạng thái active
-            document.querySelectorAll('#feed-nav .feed-button, #mobile-menu .feed-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelectorAll(`.feed-button[data-rss="${rssUrl}"]`).forEach(btn => {
-                 btn.classList.add('active');
-            });
+             document.querySelectorAll('#feed-nav .feed-button, #mobile-menu .feed-button').forEach(btn => btn.classList.remove('active'));
+             document.querySelectorAll(`.feed-button[data-rss="${rssUrl}"]`).forEach(btn => btn.classList.add('active'));
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            fetchRSS(rssUrl, sourceName);
-            mobileMenu.classList.add('hidden'); // Đóng menu mobile
+             window.scrollTo({ top: 0, behavior: 'smooth' });
+             fetchRSS(rssUrl, sourceName);
+             mobileMenu.classList.add('hidden');
         }
 
-        async function handleSummaryClick(title, description) {
+        // [CẬP NHẬT] Gọi hàm streaming mới
+        function handleSummaryClick(title, description) { // Đổi thành function thường, không cần async
             if (!description || description === "Không có mô tả.") {
-                summaryContent.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt.</p>`;
+                summaryTitleElement.textContent = title;
+                summaryTextElement.innerHTML = `<p class="text-yellow-400 text-center">Không có đủ nội dung để tóm tắt.</p>`;
                 summaryModal.classList.remove('hidden');
                 return;
             }
             const prompt = `Tóm tắt nội dung sau đây trong khoảng 200 từ:
             Tiêu đề: ${title}
             Nội dung: ${description}`;
-            const summaryText = await callGeminiAPI(prompt);
-            summaryContent.innerHTML = `
-                <div class="text-gray-200 space-y-4">
-                    <h3 class="text-lg font-semibold text-white">${title}</h3>
-                    <p class="whitespace-pre-wrap leading-relaxed">${summaryText}</p>
-                </div>
-            `;
+
+            // Gọi hàm streaming mới
+            callGeminiAPIStreaming(prompt, title);
         }
 
-        // ----- HÀM XỬ LÝ SỰ KIỆN (Chat) -----
+        // ----- HÀM XỬ LÝ SỰ KIỆN (Chat - Không thay đổi) -----
         function renderChatHistory() {
             chatDisplay.innerHTML = '';
             if (chatHistory.length === 0) {
@@ -397,7 +388,6 @@
             });
             chatDisplay.scrollTop = chatDisplay.scrollHeight;
         }
-
         async function handleSendChat(e) {
             e.preventDefault();
             const prompt = chatInput.value.trim();
@@ -407,7 +397,6 @@
             chatInput.value = '';
             await callChatAPI();
         }
-
         function resetChat() {
             chatHistory = [];
             renderChatHistory();
@@ -423,9 +412,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Gắn sự kiện click cho desktop nav
             feedNav.addEventListener('click', handleFeedButtonClick);
-            // Gắn sự kiện click cho mobile menu
             mobileMenu.addEventListener('click', handleFeedButtonClick);
 
             const defaultFeed = feedNav.querySelector('.feed-button.active');
@@ -435,11 +422,25 @@
             setTimeout(prewarmCache, 0);
         });
 
-        // Sự kiện modal Tóm tắt
-        closeSummaryModalButton.addEventListener('click', () => summaryModal.classList.add('hidden'));
-        summaryModal.addEventListener('click', (e) => {
-            if (e.target === summaryModal) summaryModal.classList.add('hidden');
-        });
+        // [CẬP NHẬT] Sự kiện đóng modal Tóm tắt (cần đóng cả EventSource)
+        closeSummaryModalButton.addEventListener('click', () => {
+             summaryModal.classList.add('hidden');
+             if (summaryEventSource) {
+                 summaryEventSource.close();
+                 summaryEventSource = null;
+                 console.log("Đã đóng stream tóm tắt khi đóng modal.");
+             }
+         });
+         summaryModal.addEventListener('click', (e) => {
+             if (e.target === summaryModal) {
+                  summaryModal.classList.add('hidden');
+                  if (summaryEventSource) {
+                      summaryEventSource.close();
+                      summaryEventSource = null;
+                      console.log("Đã đóng stream tóm tắt khi đóng modal.");
+                  }
+             }
+         });
 
         // GẮN SỰ KIỆN CHO HAMBURGER BUTTON
         hamburgerButton.addEventListener('click', () => {
@@ -451,19 +452,16 @@
             chatModal.classList.remove('hidden');
             chatInput.focus();
         });
-
         closeChatModal.addEventListener('click', () => {
             chatModal.classList.add('hidden');
             resetChat();
         });
-
         chatModal.addEventListener('click', (e) => {
             if (e.target === chatModal) {
                 chatModal.classList.add('hidden');
                 resetChat();
             }
         });
-
         chatForm.addEventListener('submit', handleSendChat);
 
     </script>
