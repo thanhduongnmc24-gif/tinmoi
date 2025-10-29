@@ -6,35 +6,90 @@
     <title>Tin Tức Tổng Hợp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* CSS cũ như trước */
-        body { font-family: 'Inter', sans-serif; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #fff; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .feed-button.active { background-color: white; color: #111827; font-weight: 600; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
-        .feed-button { color: #D1D5DB; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
-        .feed-button:hover { background-color: #374151; }
-        #mobile-menu .feed-button { display: block; width: 100%; text-align: left; padding: 10px 16px; border-radius: 6px; font-weight: 500; color: #D1D5DB; }
-        #mobile-menu .feed-button:hover { background-color: #4B5563; }
-        #mobile-menu .feed-button.active { background-color: #6B7280; color: white; }
-        #chat-input { background-color: #374151; color: white; border: 1px solid #4B5563; }
-        #chat-input:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); }
+        /* Thêm font Inter cho đẹp */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* CSS cho spinner loading */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* CSS cho nút feed đang active (cả desktop và mobile) */
+        .feed-button.active {
+            background-color: white;
+            color: #111827; /* text-gray-900 */
+            font-weight: 600;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .feed-button { /* Mặc định cho desktop */
+            color: #D1D5DB; /* text-gray-300 */
+            font-weight: 500; /* font-medium */
+            white-space: nowrap; /* Ngăn xuống dòng */
+            flex-shrink: 0; /* Không co lại */
+        }
+        .feed-button:hover {
+            background-color: #374151; /* hover:bg-gray-700 */
+        }
+         /* Style riêng cho nút mobile */
+        #mobile-menu .feed-button {
+             display: block;
+             width: 100%;
+             text-align: left;
+             padding: 10px 16px; /* py-2.5 px-4 */
+             border-radius: 6px; /* rounded-md */
+             font-weight: 500; /* font-medium */
+             color: #D1D5DB; /* text-gray-300 */
+        }
+         #mobile-menu .feed-button:hover {
+              background-color: #4B5563; /* bg-gray-600 */
+         }
+         #mobile-menu .feed-button.active {
+              background-color: #6B7280; /* bg-gray-500 */
+              color: white;
+         }
+
+
+        /* CSS cho input trong chat modal */
+        #chat-input {
+            background-color: #374151;
+            color: white;
+            border: 1px solid #4B5563;
+        }
+        #chat-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+        /* CSS cho bong bóng chat */
         .chat-bubble { max-width: 80%; padding: 10px 16px; border-radius: 16px; margin-bottom: 8px; line-height: 1.5; }
         .user-bubble { background-color: #3B82F6; color: white; align-self: flex-end; }
         .model-bubble { background-color: #4B5563; color: #E5E7EB; align-self: flex-start; }
+
+        /* Giới hạn dòng cho mô tả bài viết */
         .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
         .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 
-        /* [MỚI] CSS cho Toast Notification */
+        /* CSS cho Toast Notification */
         #summary-toast {
             position: fixed;
-            bottom: 1rem; /* cách đáy 16px */
-            left: 1rem; /* cách trái 16px */
-            background-color: #1F2937; /* bg-gray-800 */
-            color: #E5E7EB; /* text-gray-200 */
-            padding: 1rem; /* p-4 */
-            border-radius: 0.5rem; /* rounded-lg */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
-            z-index: 60; /* Cao hơn các nút FAB */
+            bottom: 1rem;
+            left: 1rem;
+            background-color: #1F2937;
+            color: #E5E7EB;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 60;
             cursor: pointer;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
             opacity: 0;
@@ -49,10 +104,10 @@
              position: absolute;
              top: 0.5rem;
              right: 0.5rem;
-             color: #9CA3AF; /* text-gray-400 */
+             color: #9CA3AF;
              background: transparent;
              border: none;
-             font-size: 1.25rem; /* text-xl */
+             font-size: 1.25rem;
              cursor: pointer;
          }
           #toast-close-button:hover {
@@ -128,14 +183,14 @@
     <div id="chat-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
         <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
              <div class="flex justify-between items-center mb-4">
-                 <h2 class="text-2xl font-bold text-white">Hỏi AI bất cứ điều gì</h2>
+                 <h2 class="text-2xl font-bold text-white">Tèo biết tuốt đây</h2>
                  <button id="close-chat-modal" class="text-gray-400 hover:text-white text-3xl">&times;</button>
              </div>
              <div id="chat-display" class="min-h-[200px] bg-gray-900 p-4 rounded-lg mb-4 overflow-y-auto flex-grow flex flex-col">
                  <div class="model-bubble">Chào đại ca, Tèo xin trả lời bất kỳ câu hỏi nào của đại ca?</div>
              </div>
              <form id="chat-form" class="flex space-x-2">
-                 <input type="text" id="chat-input" placeholder="Nhập câu hỏi của bạn..." class="flex-grow p-3 rounded-lg focus:outline-none">
+                 <input type="text" id="chat-input" placeholder="Nhập câu hỏi của đại ca..." class="flex-grow p-3 rounded-lg focus:outline-none">
                  <button type="submit" id="send-chat-button" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" /></svg>
                  </button>
@@ -149,7 +204,6 @@
         <p id="toast-title" class="text-sm text-gray-400 line-clamp-2"></p>
         <p class="text-xs mt-2 text-blue-400">Nhấn để xem</p>
     </div>
-
 
     <script type="module">
         // ----- BIẾN TOÀN CỤC -----
@@ -169,43 +223,37 @@
         const chatDisplay = document.getElementById('chat-display');
         const hamburgerButton = document.getElementById('hamburger-button');
         const mobileMenu = document.getElementById('mobile-menu');
-        // [MỚI] Biến cho toast
         const summaryToast = document.getElementById('summary-toast');
         const toastTitle = document.getElementById('toast-title');
         const toastCloseButton = document.getElementById('toast-close-button');
-
 
         // ----- CACHE & HISTORY -----
         const clientRssCache = new Map();
         let chatHistory = [];
         let summaryEventSource = null;
-        // [MỚI] Biến lưu trữ tóm tắt hoàn chỉnh và tiêu đề của nó
         let completedSummary = { title: '', text: '' };
-        // [MỚI] Biến quản lý timeout của toast
         let toastTimeoutId = null;
 
-        // ----- [CẬP NHẬT] HÀM GỌI API (Tóm tắt - Streaming) -----
+        // ----- HÀM GỌI API (Tóm tắt - Streaming) -----
         function callGeminiAPIStreaming(prompt, title) {
             if (summaryEventSource) {
                 summaryEventSource.close();
+                console.log("Đã đóng stream tóm tắt cũ.");
             }
-
-            // [XÓA] Không hiện modal ở đây nữa
-            // summaryModal.classList.remove('hidden');
-
-            // [MỚI] Biến để tích lũy text
             let currentSummaryText = '';
-            // [MỚI] Hiển thị toast "Đang xử lý" (tùy chọn)
-            // showToast("Đang tóm tắt...", title, null, 3000); // Tự ẩn sau 3s
 
             const encodedPrompt = encodeURIComponent(prompt);
             const streamUrl = `/summarize-stream?prompt=${encodedPrompt}`;
             summaryEventSource = new EventSource(streamUrl);
+            console.log("Đang kết nối tới stream tóm tắt...");
 
-            summaryEventSource.onopen = () => console.log("Kết nối stream tóm tắt...");
+            // Hiển thị toast "Đang xử lý" thay vì spinner trong modal
+            // showToast("Đang tóm tắt...", title.substring(0, 50) + "...", null, 3000); // Tự ẩn sau 3s
+
+            summaryEventSource.onopen = () => console.log("Kết nối stream tóm tắt thành công!");
             summaryEventSource.onerror = (error) => {
                 console.error("Lỗi kết nối EventSource:", error);
-                showToast("Lỗi tóm tắt", "Không thể kết nối server.", null, 5000); // Hiển thị lỗi
+                showToast("Lỗi tóm tắt", "Không thể kết nối server.", null, 5000);
                 if (summaryEventSource) summaryEventSource.close();
                 summaryEventSource = null;
             };
@@ -213,18 +261,19 @@
                 try {
                     const data = JSON.parse(event.data);
                     if (data.text) {
-                        currentSummaryText += data.text; // Tích lũy text
+                        currentSummaryText += data.text;
                     } else if (data.error) {
                         console.error("Lỗi từ stream:", data.error);
                         currentSummaryText += `\n\n[Lỗi: ${data.error}]`;
                         if (summaryEventSource) summaryEventSource.close();
+                         summaryEventSource = null; // Reset để có thể gọi lại
+                         showToast("Lỗi tóm tắt", data.error, null, 5000); // Hiển thị lỗi cuối cùng
                     } else if (data.done) {
                         console.log("Stream tóm tắt hoàn thành.");
                         if (summaryEventSource) summaryEventSource.close();
                         summaryEventSource = null;
-                        // [MỚI] Lưu kết quả và hiển thị toast báo xong
                         completedSummary = { title: title, text: currentSummaryText };
-                        showSummaryReadyNotification(title);
+                        showSummaryReadyNotification(title); // Thông báo khi xong
                     }
                 } catch (e) {
                     console.error("Lỗi phân tích dữ liệu stream:", e, event.data);
@@ -235,130 +284,297 @@
             };
         }
 
-        // ----- HÀM GỌI API (Chat - Không thay đổi) -----
-        async function callChatAPI() { /* ... như cũ ... */ }
-        // ----- HÀM XỬ LÝ RSS (Không thay đổi) -----
-        async function fetchRSS(rssUrl, sourceName, { display = true } = {}) { /* ... như cũ ... */ }
-        // ----- HÀM HIỂN THỊ (Không thay đổi) -----
-        function displayArticles(items, sourceName) { /* ... như cũ ... */ }
-        // ----- HÀM XỬ LÝ SỰ KIỆN (RSS) -----
-        function handleFeedButtonClick(e) { /* ... như cũ ... */ }
+        // ----- HÀM GỌI API (Chat) -----
+        async function callChatAPI() {
+            const loadingBubble = document.createElement('div');
+            loadingBubble.className = 'model-bubble';
+            loadingBubble.innerHTML = `<div class="spinner border-t-white" style="width: 20px; height: 20px;"></div>`;
+            chatDisplay.appendChild(loadingBubble);
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
 
-        // ----- [CẬP NHẬT] HÀM XỬ LÝ SỰ KIỆN (Tóm tắt) -----
-        function handleSummaryClick(title, description) { // Không cần async nữa
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: chatHistory })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Lỗi server: ${errorText}`);
+                }
+
+                const result = await response.json();
+                const answer = result.answer;
+                chatHistory.push({ role: "model", parts: [{ text: answer }] });
+                chatDisplay.removeChild(loadingBubble);
+                renderChatHistory();
+
+            } catch (error) {
+                console.error("Lỗi khi gọi API chat:", error);
+                chatDisplay.removeChild(loadingBubble);
+                const errorBubble = document.createElement('div');
+                errorBubble.className = 'model-bubble';
+                errorBubble.style.backgroundColor = '#991B1B';
+                errorBubble.textContent = `Lỗi: ${error.message}`;
+                chatDisplay.appendChild(errorBubble);
+            } finally {
+                chatDisplay.scrollTop = chatDisplay.scrollHeight;
+            }
+        }
+
+        // ----- HÀM XỬ LÝ RSS -----
+        async function fetchRSS(rssUrl, sourceName, { display = true } = {}) {
+            if (display) {
+                loadingSpinner.classList.remove('hidden');
+                newsGrid.innerHTML = '';
+            }
+            if (clientRssCache.has(rssUrl)) {
+                if (display) {
+                    displayArticles(clientRssCache.get(rssUrl), sourceName);
+                    loadingSpinner.classList.add('hidden');
+                }
+                return;
+            }
+            try {
+                const response = await fetch(`/get-rss?url=${encodeURIComponent(rssUrl)}`);
+                if (!response.ok) throw new Error('Lỗi server (RSS)');
+                const str = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(str, "text/xml");
+                if (xmlDoc.getElementsByTagName("parsererror").length) throw new Error("Lỗi phân tích XML");
+
+                let items;
+                const itemNodes = xmlDoc.querySelectorAll("item");
+                if (itemNodes.length === 0) {
+                    const entryNodes = xmlDoc.querySelectorAll("entry");
+                    if (entryNodes.length > 0) items = Array.from(entryNodes);
+                    else throw new Error("Không tìm thấy bài viết");
+                } else {
+                     items = Array.from(itemNodes);
+                }
+                clientRssCache.set(rssUrl, items);
+                if (display) displayArticles(items, sourceName);
+            } catch (error) {
+                console.error(`Lỗi tải RSS ${sourceName}:`, error);
+                if (display) newsGrid.innerHTML = `<p class="text-red-400 col-span-full text-center">${error.message}</p>`;
+            } finally {
+                if (display) loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        // ----- HÀM HIỂN THỊ -----
+        function displayArticles(items, sourceName) {
+            newsGrid.innerHTML = '';
+            items.forEach(item => {
+                const title = item.querySelector("title")?.textContent || "Không có tiêu đề";
+                let description = item.querySelector("description")?.textContent || item.querySelector("summary")?.textContent || item.querySelector("content")?.textContent || "";
+                let link = item.querySelector("link")?.textContent || "#";
+                if (link === "#" && item.querySelector("link")?.hasAttribute("href")) {
+                    link = item.querySelector("link")?.getAttribute("href") || "#";
+                }
+                const pubDate = item.querySelector("pubDate")?.textContent || item.querySelector("updated")?.textContent || "";
+                const descParser = new DOMParser();
+                const descDoc = descParser.parseFromString(`<!doctype html><body>${description}`, 'text/html');
+                const img = descDoc.querySelector("img");
+                const imgSrc = img ? img.src : "https://placehold.co/600x400/374151/9CA3AF?text=Tin+Tuc";
+                let descriptionText = descDoc.body.textContent.trim() || "Không có mô tả.";
+                if (descriptionText.startsWith(title)) {
+                    descriptionText = descriptionText.substring(title.length).trim();
+                }
+
+                const card = document.createElement('a');
+                card.href = link;
+                card.className = "bg-gray-800 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-[1.03] hover:shadow-blue-500/20 block";
+
+                card.innerHTML = `
+                    <img src="${imgSrc}" alt="${title}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/374151/9CA3AF?text=Error';">
+                    <div class="p-5">
+                        <span class="text-xs font-semibold text-blue-400">${sourceName}</span>
+                        <h3 class="text-lg font-bold text-white mt-2 mb-1 leading-tight line-clamp-2">${title}</h3>
+                        <p class="text-sm text-gray-400 mt-2 mb-3 line-clamp-3">${descriptionText}</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <p class="text-sm text-gray-400">${pubDate ? new Date(pubDate).toLocaleString('vi-VN') : ''}</p>
+                            <button class="summary-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-200 z-10 relative">
+                                Tóm tắt
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                 card.addEventListener('click', (e) => {
+                     if (e.target.closest('.summary-btn')) {
+                         return;
+                     }
+                 });
+
+                const summaryButton = card.querySelector('.summary-btn');
+                summaryButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSummaryClick(title, descriptionText);
+                });
+                newsGrid.appendChild(card);
+            });
+        }
+
+        // ----- HÀM XỬ LÝ SỰ KIỆN (RSS & Tóm tắt) -----
+        function handleFeedButtonClick(e) {
+             const clickedButton = e.target.closest('.feed-button');
+             if (!clickedButton || clickedButton.classList.contains('active')) return;
+
+             const rssUrl = clickedButton.dataset.rss;
+             const sourceName = clickedButton.dataset.source;
+
+             document.querySelectorAll('#feed-nav .feed-button, #mobile-menu .feed-button').forEach(btn => btn.classList.remove('active'));
+             document.querySelectorAll(`.feed-button[data-rss="${rssUrl}"]`).forEach(btn => btn.classList.add('active'));
+
+             window.scrollTo({ top: 0, behavior: 'smooth' });
+             fetchRSS(rssUrl, sourceName);
+             mobileMenu.classList.add('hidden');
+        }
+
+        function handleSummaryClick(title, description) {
             if (!description || description === "Không có mô tả.") {
-                // [MỚI] Hiển thị toast lỗi ngắn gọn thay vì modal
                  showToast("Không thể tóm tắt", "Bài viết không có đủ nội dung.", null, 4000);
                 return;
             }
             const prompt = `Tóm tắt nội dung sau đây trong khoảng 200 từ:
             Tiêu đề: ${title}
             Nội dung: ${description}`;
-
-            // Gọi hàm streaming (hàm này sẽ tự xử lý thông báo khi xong)
             callGeminiAPIStreaming(prompt, title);
-             // [MỚI] Hiển thị toast "Đang xử lý" tạm thời
-             showToast("Đang tóm tắt...", title.substring(0, 50) + "...", null, 3000); // Tự ẩn sau 3s
+             showToast("Đang tóm tắt...", title.substring(0, 50) + "...", null, 3000);
         }
 
-         // ----- [MỚI] HÀM XỬ LÝ TOAST -----
-         /**
-          * Hiển thị toast thông báo chung
-          * @param {string} mainMessage - Dòng chính (VD: "Đang tóm tắt...")
-          * @param {string} detailMessage - Dòng phụ (VD: Tiêu đề bài viết)
-          * @param {Function | null} onClickAction - Hành động khi click vào toast
-          * @param {number | null} autoHideDelay - Thời gian tự ẩn (ms), null để không tự ẩn
-          */
+         // ----- HÀM XỬ LÝ TOAST -----
          function showToast(mainMessage, detailMessage, onClickAction, autoHideDelay = null) {
-             // Xóa timeout cũ nếu có
              if (toastTimeoutId) clearTimeout(toastTimeoutId);
-
-             // Cập nhật nội dung toast
              summaryToast.querySelector('p:first-of-type').textContent = mainMessage;
              toastTitle.textContent = detailMessage;
-
-             // Gắn/Xóa sự kiện click
-             summaryToast.onclick = onClickAction; // Gắn trực tiếp (sẽ bị ghi đè)
+             summaryToast.onclick = onClickAction;
              summaryToast.style.cursor = onClickAction ? 'pointer' : 'default';
-             summaryToast.querySelector('.text-xs').style.display = onClickAction ? 'block' : 'none'; // Ẩn/hiện "Nhấn để xem"
-
-             // Hiển thị toast
+             summaryToast.querySelector('.text-xs').style.display = onClickAction ? 'block' : 'none';
              summaryToast.classList.remove('hidden');
-             // Dùng setTimeout nhỏ để đảm bảo transition hoạt động
              setTimeout(() => summaryToast.classList.add('show'), 50);
 
-             // Tự động ẩn nếu có delay
              if (autoHideDelay) {
-                 toastTimeoutId = setTimeout(() => {
-                     hideToast();
-                 }, autoHideDelay);
+                 toastTimeoutId = setTimeout(hideToast, autoHideDelay);
              }
          }
-
          function hideToast() {
               if (toastTimeoutId) clearTimeout(toastTimeoutId);
               toastTimeoutId = null;
               summaryToast.classList.remove('show');
-              // Chờ transition xong rồi mới ẩn hẳn bằng 'hidden'
-              setTimeout(() => summaryToast.classList.add('hidden'), 300); // 300ms là thời gian transition
-              summaryToast.onclick = null; // Xóa sự kiện click
+              setTimeout(() => summaryToast.classList.add('hidden'), 300);
+              summaryToast.onclick = null;
          }
-
-         /**
-          * Hiển thị toast báo tóm tắt đã sẵn sàng
-          */
          function showSummaryReadyNotification(title) {
               showToast(
                   "Tóm tắt đã sẵn sàng!",
-                  title.substring(0, 50) + "...", // Hiển thị tiêu đề ngắn
-                  () => { // Hành động khi click
-                      // Điền nội dung vào modal
+                  title.substring(0, 50) + "...",
+                  () => {
                       summaryTitleElement.textContent = completedSummary.title;
                       summaryTextElement.textContent = completedSummary.text;
-                      // Hiện modal
                       summaryModal.classList.remove('hidden');
-                      // Ẩn toast
                       hideToast();
                   },
                   null // Không tự ẩn
               );
          }
 
-
-        // ----- HÀM XỬ LÝ SỰ KIỆN (Chat - Không thay đổi) -----
-        function renderChatHistory() { /* ... như cũ ... */ }
-        async function handleSendChat(e) { /* ... như cũ ... */ }
-        function resetChat() { /* ... như cũ ... */ }
+        // ----- HÀM XỬ LÝ SỰ KIỆN (Chat) -----
+        function renderChatHistory() {
+            chatDisplay.innerHTML = '';
+            if (chatHistory.length === 0) {
+                 chatDisplay.innerHTML = `<div class="model-bubble">Chào đại ca, Tèo xin trả lời bất kỳ câu hỏi nào của đại ca?</div>`;
+                 return;
+            }
+            chatHistory.forEach(message => {
+                const bubble = document.createElement('div');
+                bubble.className = 'chat-bubble';
+                if (message.role === 'user') {
+                    bubble.classList.add('user-bubble');
+                } else {
+                    bubble.classList.add('model-bubble');
+                }
+                bubble.style.whiteSpace = "pre-wrap";
+                bubble.textContent = message.parts[0].text;
+                chatDisplay.appendChild(bubble);
+            });
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        }
+        async function handleSendChat(e) {
+            e.preventDefault();
+            const prompt = chatInput.value.trim();
+            if (!prompt) return;
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            renderChatHistory();
+            chatInput.value = '';
+            await callChatAPI();
+        }
+        function resetChat() {
+            chatHistory = [];
+            renderChatHistory();
+        }
 
         // ----- GẮN KẾT CÁC SỰ KIỆN -----
-        function prewarmCache() { /* ... như cũ ... */ }
-        document.addEventListener('DOMContentLoaded', async () => { /* ... như cũ ... */ });
+        function prewarmCache() {
+            console.log("[Cache-Warmer] Bắt đầu tải nền các feed khác...");
+            const feedsToPrewarm = Array.from(feedNav.querySelectorAll('.feed-button:not(.active)'));
+            feedsToPrewarm.forEach(feed => {
+                fetchRSS(feed.dataset.rss, feed.dataset.source, { display: false });
+            });
+        }
 
-        // [CẬP NHẬT] Sự kiện đóng modal Tóm tắt
+        document.addEventListener('DOMContentLoaded', async () => {
+            feedNav.addEventListener('click', handleFeedButtonClick);
+            mobileMenu.addEventListener('click', handleFeedButtonClick);
+
+            const defaultFeed = feedNav.querySelector('.feed-button.active');
+            if (defaultFeed) {
+                await fetchRSS(defaultFeed.dataset.rss, defaultFeed.dataset.source);
+            }
+            setTimeout(prewarmCache, 0);
+        });
+
         closeSummaryModalButton.addEventListener('click', () => {
              summaryModal.classList.add('hidden');
-             // Không cần đóng event source ở đây nữa vì nó đã tự đóng khi xong
-             // Hoặc khi có lỗi
-        });
-        summaryModal.addEventListener('click', (e) => {
-             if (e.target === summaryModal) {
-                  summaryModal.classList.add('hidden');
+             if (summaryEventSource) {
+                 summaryEventSource.close();
+                 summaryEventSource = null;
              }
         });
+         summaryModal.addEventListener('click', (e) => {
+             if (e.target === summaryModal) {
+                  summaryModal.classList.add('hidden');
+                  if (summaryEventSource) {
+                      summaryEventSource.close();
+                      summaryEventSource = null;
+                  }
+             }
+         });
 
-        // GẮN SỰ KIỆN CHO HAMBURGER BUTTON
         hamburgerButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 
-        // [MỚI] GẮN SỰ KIỆN CHO NÚT ĐÓNG TOAST
          toastCloseButton.addEventListener('click', (e) => {
-             e.stopPropagation(); // Ngăn sự kiện click của toast cha
+             e.stopPropagation();
              hideToast();
          });
 
-        // GẮN SỰ KIỆN CHO CHAT
-        chatFab.addEventListener('click', () => { /* ... */ });
-        closeChatModal.addEventListener('click', () => { /* ... */ });
-        chatModal.addEventListener('click', (e) => { /* ... */ });
+        chatFab.addEventListener('click', () => {
+            chatModal.classList.remove('hidden');
+            chatInput.focus();
+        });
+        closeChatModal.addEventListener('click', () => {
+            chatModal.classList.add('hidden');
+            resetChat();
+        });
+        chatModal.addEventListener('click', (e) => {
+            if (e.target === chatModal) {
+                chatModal.classList.add('hidden');
+                resetChat();
+            }
+        });
         chatForm.addEventListener('submit', handleSendChat);
 
     </script>
